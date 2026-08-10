@@ -1,0 +1,36 @@
+{
+  "schema": "1.0.0",
+  "run": {
+    "id": "local-smoke-1",
+    "suite": "bench",
+    "runType": "server",
+    "side": "DEDICATED_SERVER",
+    "seed": 1,
+    "startedAt": "2026-07-26T00:00:00Z",
+    "finishedAt": "2026-07-26T00:00:01Z"
+  },
+  "environment": {
+    "os": { "name": "example" },
+    "java": { "version": "25" },
+    "versions": { "coreApi": "0.1.0", "reportSchema": "1.0.0" },
+    "loadedMods": [{ "id": "examplemod", "version": "1.0.0" }]
+  },
+  "artifacts": [],
+  "providers": [{
+    "id": "example",
+    "className": "example.ExampleBenchProvider",
+    "targetMod": "examplemod",
+    "apiCompatibility": { "major": 0, "minimumMinor": 1, "maximumMinor": 1 }
+  }],
+  "scenarios": [{
+    "id": "example.server-smoke",
+    "providerId": "example",
+    "status": "PASSED",
+    "workloadCorrect": true,
+    "failure": null,
+    "phases": [],
+    "metrics": []
+  }],
+  "summary": { "status": "PASSED", "counts": { "passed": 1, "total": 1 } },
+  "diagnostics": []
+}

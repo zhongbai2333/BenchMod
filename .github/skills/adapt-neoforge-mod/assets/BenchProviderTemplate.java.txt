@@ -1,0 +1,69 @@
+package example.bench;
+
+import com.zhongbai233.bench.api.BenchApiVersion;
+import com.zhongbai233.bench.api.BenchCompatibility;
+import com.zhongbai233.bench.api.ScenarioDescriptor;
+import com.zhongbai233.bench.api.neoforge.server.BenchServerContext;
+import com.zhongbai233.bench.api.neoforge.server.BenchServerProvider;
+import com.zhongbai233.bench.api.neoforge.server.BenchServerRegistrar;
+import com.zhongbai233.bench.api.neoforge.server.BenchServerScenario;
+import com.zhongbai233.bench.api.neoforge.server.BenchStepResult;
+import java.time.Duration;
+import java.util.Set;
+
+public final class ExampleBenchProvider implements BenchServerProvider {
+    public ExampleBenchProvider() {}
+
+    @Override
+    public String id() {
+        return "replace-with-mod-id";
+    }
+
+    @Override
+    public BenchCompatibility compatibility() {
+        return BenchApiVersion.currentCompatibility();
+    }
+
+    @Override
+    public void registerServer(BenchServerRegistrar registrar) {
+        registrar.register(
+                new ScenarioDescriptor(
+                        "replace-with-mod-id.server.scenario",
+                        "Replace with scenario name",
+                        Set.of("server"),
+                        Duration.ofSeconds(30)),
+                context -> new Scenario());
+    }
+
+    private static final class Scenario implements BenchServerScenario {
+        @Override
+        public void setup(BenchServerContext context) {
+            // Create deterministic target-Mod state through public server APIs.
+        }
+
+        @Override
+        public BenchStepResult stabilize(BenchServerContext context) {
+            return BenchStepResult.COMPLETE;
+        }
+
+        @Override
+        public BenchStepResult warmup(BenchServerContext context) {
+            return BenchStepResult.COMPLETE;
+        }
+
+        @Override
+        public BenchStepResult measure(BenchServerContext context) {
+            return BenchStepResult.COMPLETE;
+        }
+
+        @Override
+        public void verify(BenchServerContext context) {
+            // Throw AssertionError if the workload did not run correctly.
+        }
+
+        @Override
+        public void teardown(BenchServerContext context) {
+            // Remove only state created by this scenario; tolerate partial setup.
+        }
+    }
+}

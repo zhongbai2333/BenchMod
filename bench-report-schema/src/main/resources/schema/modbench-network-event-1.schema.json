@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.zhongbai233.com/mod-bench/network-event/1",
+  "title": "ModBench Network Backend Event",
+  "type": "object",
+  "required": ["schema", "monotonicOffsetNanos", "connectionId", "direction", "type", "streamOffset", "queueBytes", "detail"],
+  "properties": {
+    "schema": { "const": "modbench-network-event-1" },
+    "monotonicOffsetNanos": { "type": "integer", "minimum": 0 },
+    "connectionId": { "type": "integer", "minimum": 0 },
+    "direction": { "enum": ["CLIENT_TO_SERVER", "SERVER_TO_CLIENT", null] },
+    "type": { "type": "string", "minLength": 1 },
+    "streamOffset": { "type": "integer", "minimum": 0 },
+    "queueBytes": { "type": "integer", "minimum": 0 },
+    "detail": { "type": ["string", "null"] }
+  },
+  "additionalProperties": false
+}

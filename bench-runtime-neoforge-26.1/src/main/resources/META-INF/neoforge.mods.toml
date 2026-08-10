@@ -1,0 +1,21 @@
+license="MIT"
+
+[[mods]]
+modId="modbench_runtime"
+version="${file.jarVersion}"
+displayName="ModBench Runtime"
+description='''Dedicated server benchmark execution runtime.'''
+
+[[dependencies.modbench_runtime]]
+modId="neoforge"
+type="required"
+versionRange="[26.1.2.76,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.modbench_runtime]]
+modId="minecraft"
+type="required"
+versionRange="[26.1.2]"
+ordering="NONE"
+side="BOTH"

@@ -1,4 +1,13 @@
-# Compiled class file
+.gradle/
+build/
+**/build/
+.idea/
+*.iml
+.vscode/
+run/
+logs/
+crash-reports/
+bin/
 *.class
 
 # Log file
