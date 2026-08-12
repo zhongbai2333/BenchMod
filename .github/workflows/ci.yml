@@ -62,10 +62,6 @@ jobs:
     name: Verify released JitPack consumer contract
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      # Keep this job independent from Maven Local and every Gradle cache used by
-      # the source-publication preflight above.
-      GRADLE_USER_HOME: ${{ runner.temp }}/gradle-jitpack-consumer
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -82,6 +78,10 @@ jobs:
         uses: gradle/actions/wrapper-validation@v6
 
       - name: Resolve and compile the external consumer
+        env:
+          # Keep this step independent from Maven Local and every Gradle cache used by
+          # the source-publication preflight above. The runner context is available here.
+          GRADLE_USER_HOME: ${{ runner.temp }}/gradle-jitpack-consumer
         run: >-
           ./gradlew -p examples/simple-neoforge-mod
           compileBenchJava
