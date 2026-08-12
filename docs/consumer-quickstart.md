@@ -6,7 +6,7 @@
 
 - Mod 在 **Minecraft 26.1.2 / NeoForge 26.1.2.76** 开发线上（当前唯一验证线）。
 - Java 25 工具链、Gradle 9.x、ModDevGradle 2.x。
-- 一个已发布的不可变 JitPack tag，例如 `0.1.0`。
+- 一个已发布的不可变 JitPack tag，例如 `0.1.1`。
 
 开发 ModBench 本身时可以改用本地快照：
 
@@ -14,7 +14,7 @@
 ./gradlew publishToMavenLocal
 ```
 
-> 本地快照需要在下面两个 repository 块中把 `maven("https://jitpack.io")` 换成 `mavenLocal()`，并把版本改为 `0.1.0-SNAPSHOT`。修改过源码后要重新发布。
+> 本地开发需要在下面两个 repository 块中把 `maven("https://jitpack.io")` 换成 `mavenLocal()`，并把版本改为当前 `gradle.properties` 中的 `modBenchVersion`。修改过源码后要重新发布。
 
 ## 1. settings.gradle.kts
 
@@ -53,7 +53,7 @@ dependencyResolutionManagement {
 `gradle.properties` 里加：
 
 ```properties
-modbench_version=0.1.0
+modbench_version=0.1.1
 ```
 
 ## 2. build.gradle.kts

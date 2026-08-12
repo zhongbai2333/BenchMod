@@ -21,7 +21,7 @@ group = if (jitPackBuild) {
 version = if (jitPackBuild) {
     providers.environmentVariable("VERSION").get()
 } else {
-    providers.gradleProperty("modBenchVersion").getOrElse("0.1.0-SNAPSHOT")
+    providers.gradleProperty("modBenchVersion").getOrElse("0.1.1")
 }
 
 val moduleDescriptions = mapOf(

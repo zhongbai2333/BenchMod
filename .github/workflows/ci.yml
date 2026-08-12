@@ -27,7 +27,9 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: |
+            21
+            25
 
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v6

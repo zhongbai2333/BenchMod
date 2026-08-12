@@ -10,7 +10,7 @@ ModBench 使用 JitPack 从不可变 Git tag 构建，不需要向 Maven Central
 JITPACK=true \
 GROUP=com.github.zhongbai2333 \
 ARTIFACT=BenchMod \
-VERSION=0.1.0 \
+VERSION=0.1.1 \
 ./gradlew check verifyReleaseReadiness --configuration-cache --no-daemon --stacktrace
 ```
 
@@ -30,8 +30,8 @@ VERSION=0.1.0 \
 2. 创建并推送不可变 tag，例如：
 
    ```bash
-   git tag -a 0.1.0 -m "ModBench 0.1.0"
-   git push origin 0.1.0
+   git tag -a 0.1.1 -m "ModBench 0.1.1"
+   git push origin 0.1.1
    ```
 
 3. 打开 [JitPack 的 BenchMod 页面](https://jitpack.io/#zhongbai2333/BenchMod)，选择该 tag 并触发或查看构建。
@@ -39,7 +39,7 @@ VERSION=0.1.0 \
 
 不要移动或复用已经被消费的 tag。修复发布内容时创建新 patch 版本，例如 `0.1.1`。
 
-JitPack 构建会通过 `jitpack.yml` 安装 Java 25，并运行 `clean check verifyReleaseReadiness`。构建环境提供的坐标会写入 Gradle Plugin 自身，因此其自动依赖与同一次 JitPack 构建保持一致：
+JitPack 构建会通过 `jitpack.yml` 安装 NeoForge 工具任务需要的 Java 21 和 BenchMod 构建使用的 Java 25，并运行 `clean check verifyReleaseReadiness`。构建环境提供的坐标会写入 Gradle Plugin 自身，因此其自动依赖与同一次 JitPack 构建保持一致：
 
 ```text
 com.github.zhongbai2333.BenchMod:bench-api-core:<tag>
