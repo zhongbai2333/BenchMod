@@ -14,7 +14,7 @@ VERSION=0.1.0 \
 ./gradlew check verifyReleaseReadiness --configuration-cache --no-daemon --stacktrace
 ```
 
-`verifyReleaseReadiness` 执行五个公开模块的 `check` 和 `publishToMavenLocal`，根 `check` 还覆盖暂未发布的 network 模块。GitHub CI 使用 commit SHA 注入同一组 JitPack 环境变量，并由 Wrapper Validation 检查 Wrapper JAR、checksum 和脚本；JitPack 也必须先成功执行已提交的 `./gradlew` 才会进入构建。公开模块是：
+`verifyReleaseReadiness` 执行五个公开模块的 `check` 和 `publishToMavenLocal`，根 `check` 还覆盖暂未发布的 network 模块。GitHub CI 对分支构建使用 commit SHA、对 tag 构建使用 tag 名注入同一组 JitPack 环境变量，并由 Wrapper Validation 检查 Wrapper JAR、checksum 和脚本；因此正式 tag 的 POM 与插件内自动依赖坐标会在 JitPack 构建前得到等价验证。JitPack 也必须先成功执行已提交的 `./gradlew` 才会进入构建。公开模块是：
 
 - `bench-api-core`
 - `bench-report-schema`
@@ -26,7 +26,7 @@ VERSION=0.1.0 \
 
 ## 创建版本
 
-1. 确认目标 commit 的 CI 已通过。`gradle.properties` 中的 `modBenchVersion` 是本地开发快照；JitPack 的正式版本由 tag 注入，不需要为发布改写它。
+1. 把 `gradle.properties` 中的 `modBenchVersion` 改成计划发布的版本，并确认目标 commit 的 CI 已通过。JitPack 的正式版本仍由 tag 注入，但仓库内版本必须与 tag 保持一致。
 2. 创建并推送不可变 tag，例如：
 
    ```bash
