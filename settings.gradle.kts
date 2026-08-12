@@ -4,10 +4,13 @@ pluginManagement {
         mavenCentral()
         maven("https://maven.neoforged.net/releases")
     }
+    plugins {
+        id("net.neoforged.moddev.repositories") version providers.gradleProperty("modDevVersion").get()
+    }
 }
 
 plugins {
-    id("net.neoforged.moddev.repositories") version "2.0.141"
+    id("net.neoforged.moddev.repositories")
 }
 
 dependencyResolutionManagement {

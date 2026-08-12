@@ -14,17 +14,24 @@
 ./gradlew publishToMavenLocal
 ```
 
-> 本地开发需要在下面两个 repository 块中把 `maven("https://jitpack.io")` 换成 `mavenLocal()`，并把版本改为当前 `gradle.properties` 中的 `modBenchVersion`。修改过源码后要重新发布。
+> 本地开发可以参考仓库内示例：先执行 `./gradlew publishToMavenLocal`，再向示例传入
+> `-PmodBenchLocal=true`。该开关会同时切换插件和依赖坐标；修改过源码后要重新发布。
+> 正式消费方应固定不可变 JitPack tag，不应把 Maven Local 作为默认仓库。
 
 ## 1. settings.gradle.kts
 
 ```kotlin
 pluginManagement {
+    val modDevVersion = providers.gradleProperty("moddev_version").get()
+
     repositories {
         maven("https://jitpack.io")
         gradlePluginPortal()
         mavenCentral()
         maven("https://maven.neoforged.net/releases")
+    }
+    plugins {
+        id("net.neoforged.moddev.repositories") version modDevVersion
     }
     resolutionStrategy {
         eachPlugin {
@@ -36,7 +43,7 @@ pluginManagement {
 }
 
 plugins {
-    id("net.neoforged.moddev.repositories") version "2.0.141"
+    id("net.neoforged.moddev.repositories")
 }
 
 dependencyResolutionManagement {
@@ -54,6 +61,7 @@ dependencyResolutionManagement {
 
 ```properties
 modbench_version=0.1.1
+moddev_version=2.0.141
 ```
 
 ## 2. build.gradle.kts
