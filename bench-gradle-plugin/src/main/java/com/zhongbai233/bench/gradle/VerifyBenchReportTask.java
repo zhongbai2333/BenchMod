@@ -31,6 +31,7 @@ public abstract class VerifyBenchReportTask extends DefaultTask {
         getExpectedStatus().convention("PASSED");
         getExpectedRunType().convention("");
         getExpectedScenarioId().convention("");
+        getExpectedScenarioIds().convention(List.of());
         getExpectedArtifactPaths().convention(List.of());
         getExpectedDiagnostics().convention(List.of());
         getExpectedMetricNames().convention(List.of());
@@ -49,6 +50,10 @@ public abstract class VerifyBenchReportTask extends DefaultTask {
 
     @Input
     public abstract Property<String> getExpectedScenarioId();
+
+    /** Scenario ids that must all be present. Prefer this over the legacy singular property. */
+    @Input
+    public abstract ListProperty<String> getExpectedScenarioIds();
 
     /** Report-relative artifact paths that must be listed and exist as non-empty files. */
     @Input
@@ -87,6 +92,13 @@ public abstract class VerifyBenchReportTask extends DefaultTask {
         String scenarioId = getExpectedScenarioId().get();
         if (!scenarioId.isBlank() && !containsText(root.path("scenarios"), "id", scenarioId)) {
             throw new IllegalStateException("Benchmark report did not contain expected scenario: " + scenarioId);
+        }
+        for (String expectedScenarioId : getExpectedScenarioIds().get()) {
+            if (!expectedScenarioId.isBlank()
+                    && !containsText(root.path("scenarios"), "id", expectedScenarioId)) {
+                throw new IllegalStateException(
+                        "Benchmark report did not contain expected scenario: " + expectedScenarioId);
+            }
         }
         for (String artifactPath : getExpectedArtifactPaths().get()) {
             verifyArtifact(report, root, artifactPath);

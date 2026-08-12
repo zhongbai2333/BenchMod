@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 class ModBenchPluginTest {
     @Test
     void addsModBenchDependenciesAtThePluginVersion() {
+        String group = ModBenchVersion.readGroup();
         String version = ModBenchVersion.read();
+        assertFalse(group.isBlank(), "the expanded group resource must be on the test classpath");
         assertFalse(version.isBlank(), "the expanded version resource must be on the test classpath");
 
         Project project = apply();
@@ -23,12 +25,13 @@ class ModBenchPluginTest {
                 .getAllDependencies().stream()
                 .map(dependency -> dependency.getGroup() + ":" + dependency.getName() + ":" + dependency.getVersion())
                 .collect(Collectors.toSet());
-        assertTrue(benchImplementation.contains("com.zhongbai233.bench:bench-api-core:" + version));
-        assertTrue(benchImplementation.contains("com.zhongbai233.bench:bench-api-neoforge-26.1:" + version));
+        assertTrue(benchImplementation.contains(group + ":bench-api-core:" + version));
+        assertTrue(benchImplementation.contains(group + ":bench-api-neoforge-26.1:" + version));
 
         var runtimeDependencies = project.getConfigurations().getByName("benchRuntimeMod").getAllDependencies();
         assertEquals(1, runtimeDependencies.size());
         ModuleDependency runtime = (ModuleDependency) runtimeDependencies.iterator().next();
+        assertEquals(group, runtime.getGroup());
         assertEquals("bench-runtime-neoforge-26.1", runtime.getName());
         assertEquals(version, runtime.getVersion());
         assertFalse(runtime.isTransitive(), "the runtime enters the bench classpath as a mod JAR only");

@@ -16,9 +16,9 @@ ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它
 
 当前 Server MVP 纵切已针对 NeoForge `26.1.2.76` / Minecraft `26.1.2` dedicated server 配置并验证：Runtime `@Mod` 启动、游戏 classloader ServiceLoader、跨 tick workload、partial/final JSON 原子写入、自动停服和 Draft 2020-12 Schema 验证均已闭环。
 
-客户端纵切现已具备 `BenchClientProvider`、client tick 生命周期、`RenderFrameEvent.Pre` 帧间隔采样、关键帧 camera 时间轴（缓动、固定速度、循环/往返）、渲染就绪与帧稳定门禁、环境有效性判定、可隐藏 HUD 的 PNG 截图（带 SHA-256）、GUI interaction-tree 快照/严格 selector/控件区域截图、失败时自动抓帧、client 报告和 `runBenchClient`。Runtime 会自动创建或重用固定 seed 的 integrated world，应用窗口、VSync、FPS cap 与视距基线，执行场景并自动退出；普通 client 自动化的独立消费方真实 E2E 已通过，GUI 调试纵切仍待外部消费方真实 E2E。
+客户端纵切现已具备 `BenchClientProvider`、client tick 生命周期、`RenderFrameEvent.Pre` 帧间隔采样、关键帧 camera 时间轴（缓动、固定速度、循环/往返）、渲染就绪与帧稳定门禁、环境有效性判定、可隐藏 HUD 的 PNG 截图（带 SHA-256）、GUI interaction-tree 快照/严格 selector/点击、滚动、拖动、按键、Unicode 输入/控件区域截图、失败时自动抓帧、client 报告和 `runBenchClient`。Runtime 会自动创建或重用固定 seed 的 integrated world，应用窗口、VSync、FPS cap 与视距基线，执行场景并自动退出；普通 client 自动化的独立消费方真实 E2E 已通过，GUI 交互仍待外部消费方真实 E2E。
 
-尚待完成的客户端能力包括 GUI 自动点击/键盘输入/tooltip 与完整视觉树、感知级截图比对、目标投影门禁和更多真实 Mod 验证。
+尚待完成的客户端能力包括 tooltip 与完整视觉树、感知级截图比对、目标投影门禁和更多真实 Mod 验证。
 
 下一条客户端纵切是 `dedicated server + separate client` paired 模式，用于覆盖 integrated world 无法重现的登录、服务端权威同步、真实 socket 与断连问题。该模式将支持可复现网络 profile：默认无管理员跨平台 TCP proxy 提供方向性延迟、抖动、带宽、转发卡顿和连接中止；真正 packet loss/reorder/duplicate 仅由明确标记的 IP-packet backend 提供。TCP proxy 不会用“随机丢字节”伪装丢包。
 
@@ -50,15 +50,15 @@ ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它
 
 生产 Runtime JAR 不包含 smoke Provider 或 `META-INF/services/BenchProvider`。
 
-独立消费方示例位于 [`examples/simple-neoforge-mod`](examples/simple-neoforge-mod)。其 `check` 验证生产 JAR 隔离，`verifyBenchExample` 启动真实 dedicated server 并验收报告。
+独立消费方示例位于 [`examples/simple-neoforge-mod`](examples/simple-neoforge-mod)。其 `check` 验证生产 JAR 隔离，`verifyBenchServer` 启动真实 dedicated server 并验收报告。
 
 报告不再只有状态：`scenarios[].phases` 记录每个生命周期 phase 的起止 tick、wall 时长和结局；`scenarios[].metrics` 记录内建 `server.tick.duration` / `client.frame.interval` 和 Provider 经 `context.metrics().record(...)` 提交的自定义指标，含 count/min/max/mean/median/P90/P95/P99/stdDev（client MEASURE 帧指标另带 1% low、0.1% low 与超预算帧数）；`environment` 含 OS/CPU/内存/Java/JVM args（敏感参数脱敏）、Minecraft/NeoForge 版本与完整 `loadedMods`；`run.parameters` 记录超时与图形基线。`VerifyBenchReportTask` 可用 `expectedMetricNames` 和 `expectedLoadedModIds` 验收这些内容。
 
-Plugin 自动注册整套验证与收集任务：`verifyProductionJarHasNoBenchContent` 挂入 `check`（检查 bench source set 输出重叠、ModBench 包泄漏与 ServiceLoader descriptor）；`verifyBenchServerReport` / `verifyBenchClientReport` 预设默认报告路径与 runType，消费方只需补场景与指标期望；`runBench*` 之前自动清理旧结果、之后无论成败都会被 `collectBench*Artifacts` finalize，把报告、游戏日志和 crash-reports 打包进 `build/modBench/bundles/<suite>/<runType>` 并写 manifest。场景超时时 Runtime 会写全线程 dump 到 `artifacts/thread-dumps/<scenario>.txt` 并登记为 artifact。
+Plugin 自动注册整套验证与收集任务：`verifyProductionJarHasNoBenchContent` 挂入 `check`（检查 bench source set 输出重叠、ModBench 包泄漏与 ServiceLoader descriptor）；`verifyBenchServer` / `verifyBenchClient` 组合真实 run 与报告验收，底层 `verifyBench*Report` 预设默认报告路径与 runType，消费方只需补场景与指标期望；`runBench*` 之前自动清理旧结果、之后无论成败都会被 `collectBench*Artifacts` finalize，把报告、游戏日志和 crash-reports 打包进 `build/modBench/bundles/<suite>/<runType>` 并写 manifest。场景超时时 Runtime 会写全线程 dump 到 `artifacts/thread-dumps/<scenario>.txt` 并登记为 artifact。
 
 每个场景的原始指标样本导出为 `artifacts/samples/<scenario>.jsonl`（每 metric×phase 一行），`summary.json` 旁另生成人类可读的 `report.md` 派生视图。`environment.git` 经 configuration-cache 安全的 git 探测记录本地 commit 与 dirty 状态。帧稳定判据与截图门禁预算可经 `clientStableFrameRatio` / `clientCaptureGateFrameBudget` 配置，全部实验参数都在 `run.parameters` 里。
 
-示例现在从 **mavenLocal** 消费 ModBench：插件经 plugin marker 解析，API/Runtime 依赖由插件按自身版本自动注入（可用 `modBench.automaticDependencies = false` 关闭）。改动 ModBench 源码后执行一次 `./gradlew publishToMavenLocal` 即可让示例（以及任何本机消费方）拿到新版本。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)。
+正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。仓库内示例继续用 `mavenLocal` 验证开发中的快照。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
 
 ### Client MVP
 
@@ -66,9 +66,9 @@ Plugin 会为同时实现 `BenchClientProvider` 的 `src/bench` Provider 生成 
 
 Client Provider 可通过 `context.automation()` 调用 `setPose(...)`、`movePose(...)`、`lookAt(...)`、`stopMovement()`、`setHudHidden(...)` 和 `captureScreenshot(...)`。截图请求返回 `CompletableFuture<Path>`，场景应在后续 client tick 非阻塞地检查完成状态；PNG 写入 `artifacts/screenshots`，并带 SHA-256 与字节数登记到报告 `artifacts`。
 
-GUI 调试使用 `automation().beginGuiSession(ExpectedScreen.class)`。会话把目标 Screen 视为预期环境，而不是误判为遮挡；可用 `name(widget, "stable-id")` 按对象 identity 注册场景内稳定名称，再通过 `snapshot()` 获取 detached `Screen`/`GuiEventListener` interaction tree，或用 `select(BenchGuiSelector.semanticName("stable-id"))` 严格选择节点。0 匹配、歧义和显式 `nth` 会被区分，绝不静默取第一个。`captureWidget(...)` 在 `RenderFrameEvent.Post` 对同一帧重新解析 selector，并按 GUI scale 裁剪控件区域到 `artifacts/gui`。这些 API 只能在 Minecraft client thread 调用，返回的 future 应跨 tick 非阻塞轮询；会话会在场景边界自动释放。
+GUI 自动化使用 `automation().beginGuiSession(ExpectedScreen.class)`。会话把目标 Screen 视为预期环境，而不是误判为遮挡；可用 `name(widget, "stable-id")` 按对象 identity 注册场景内稳定名称，再通过 `snapshot()` 获取 detached `Screen`/`GuiEventListener` interaction tree，或用 `select(BenchGuiSelector.semanticName("stable-id"))` 严格选择节点。`await(...)` / `awaitMissing(...)` 可直接作为跨 tick step 返回值；`click(...)`、`doubleClick(...)`、`scroll(...)`、`drag(...)`、`pressKey(...)` 和 `typeText(...)` 沿 Minecraft/NeoForge Screen 输入链分发。0 匹配和越界会等待或失败，歧义绝不静默取第一个。`captureWidget(...)` 在 `RenderFrameEvent.Post` 对同一帧重新解析 selector，并按 GUI scale 裁剪控件区域到 `artifacts/gui`。这些 API 只能在 Minecraft client thread 调用，返回的 future 应跨 tick 非阻塞轮询；会话会在场景边界自动释放。
 
-第一版快照是**交互树而非完整视觉树**：它遍历 `Screen.children()` 与嵌套 `ContainerEventHandler.children()`，不包含 `addRenderableOnly`、背景纹理、直接绘制文字等纯 `Renderable` 内容。自动点击、键盘输入、scroll/drag、tooltip 捕获和完整 accessibility/visual tree 仍属后续纵切。
+第一版快照是**交互树而非完整视觉树**：它遍历 `Screen.children()` 与嵌套 `ContainerEventHandler.children()`，不包含 `addRenderableOnly`、背景纹理、直接绘制文字等纯 `Renderable` 内容。tooltip 捕获和完整 accessibility/visual tree 仍属后续纵切。
 
 需要突出业务对象时，不要手算固定相机距离、FOV 或玩家眼高。用 `BenchBounds3` 描述关键对象的 world-space 包围盒，再以 `BenchCameraFraming` 指定观察方向和 `frameFill`（例如 `0.8`），调用 `automation().frameTarget(...)` 自动构图。高空或长时间测量使用 `holdFramedTarget(...)`，返回的 `BenchPoseHold` 会跨 client tick 抵消重力和位置漂移；在 teardown 中 `release()`，场景结束时 Runtime 也会兜底释放。原始 framebuffer PNG 仍是权威 artifact，不会通过事后裁剪伪造细节。
 
@@ -84,7 +84,7 @@ Bench 运行不锁定鼠标（每 tick 释放抓取，光标可自由离开窗�
 
 `context.environment()` 暴露渲染就绪状态与环境有效性。`readiness()` 要求资源加载完成、无遮挡屏幕、区块已加载且 mesh 队列为空；`BenchCaptureOptions.defaults()` 会在截图前等待该状态与连续稳定帧，并可隐藏 HUD。窗口失焦、最小化、暂停、弹出屏幕或尺寸变化都会记入 invalidation，此时整轮报告为 `INCONCLUSIVE` 而不是 `PASSED`。失焦判定可用 `clientRequireWindowFocus` 关闭。场景失败时 Runtime 会自动抓取最终画面为 `failure-<scenario>.png`。
 
-独立示例的 `verifyBenchClientExample` 会执行无人值守真实客户端 E2E，并验收场景状态、三个截图 artifact、非空 PNG，以及 `client.environment.valid=true`、`client.screenshot.gate_satisfied=true`、`client.screenshot.hud_hidden=true` 等诊断。
+独立示例的 `verifyBenchClient` 会执行无人值守真实客户端 E2E，并验收场景状态、三个截图 artifact、非空 PNG，以及 `client.environment.valid=true`、`client.screenshot.gate_satisfied=true`、`client.screenshot.hud_hidden=true` 等诊断。
 
 ## AI 协作
 

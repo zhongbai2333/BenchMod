@@ -153,7 +153,7 @@ SuperLead 项目预计需要：
 - 报告已填充 `phases`、`metrics`、环境、组件版本与 `loadedMods`，并由通用 Plugin 任务执行正式 Schema 验证；Schema 对 phase/metric/artifact 的细粒度字段约束仍可继续收紧。
 - `verifyProductionJarHasNoBenchContent`、`verifyBench*Report`、`collectBench*Artifacts`、timeout thread dump 与 crash/log bundle 均已通用化；仍需在 SuperLead 中实际验证普通 ModDev run 和最终 publication 隔离。
 - Server 可固定 seed 与 level type，但普通 Provider 不负责注册 bench-only 游戏内容；需要专用 Dimension、Block 或 EntityType 时仍须设计独立 Adapter Mod。
-- Client 已固定玩家/相机并把 focus/minimize/pause/resize 等干扰转换为 `INCONCLUSIVE`，但 GUI 自动输入、完整视觉树、感知级截图比对和 paired separate-client 模式尚未实现。
+- Client 已固定玩家/相机并把 focus/minimize/pause/resize 等干扰转换为 `INCONCLUSIVE`；GUI selector 点击、滚动、拖动、按键与 Unicode 输入已实现，但完整视觉树、感知级截图比对和 paired separate-client 模式尚未实现。
 - 当前没有真实 SuperLead Provider；SuperLead 业务 E2E 仍是 Phase 1 最后一项未完成验收。
 
 ## 建议接入顺序

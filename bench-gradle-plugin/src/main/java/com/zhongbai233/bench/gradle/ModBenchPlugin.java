@@ -21,7 +21,6 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
  * task or inspect ModDev internal task/argument files.
  */
 public final class ModBenchPlugin implements Plugin<Project> {
-    private static final String DEPENDENCY_GROUP = "com.zhongbai233.bench";
     private static final String NEOFORGE_LINE = "26.1";
 
     @Override
@@ -61,23 +60,24 @@ public final class ModBenchPlugin implements Plugin<Project> {
      */
     private static void addAutomaticDependencies(Project project, ModBenchExtension extension,
                                                  SourceSet bench, Configuration benchRuntimeMod) {
+        String group = ModBenchVersion.readGroup();
         String version = ModBenchVersion.read();
-        if (version.isBlank()) {
-            project.getLogger().info("ModBench plugin version is unknown; automatic dependencies are disabled.");
+        if (group.isBlank() || version.isBlank()) {
+            project.getLogger().info("ModBench plugin coordinates are unknown; automatic dependencies are disabled.");
             return;
         }
         Provider<List<Dependency>> apiDependencies = extension.getAutomaticDependencies().map(enabled -> enabled
                 ? List.of(
-                        project.getDependencies().create(DEPENDENCY_GROUP + ":bench-api-core:" + version),
+                        project.getDependencies().create(group + ":bench-api-core:" + version),
                         project.getDependencies().create(
-                                DEPENDENCY_GROUP + ":bench-api-neoforge-" + NEOFORGE_LINE + ":" + version))
+                                group + ":bench-api-neoforge-" + NEOFORGE_LINE + ":" + version))
                 : List.of());
         project.getConfigurations().getByName(bench.getImplementationConfigurationName())
                 .getDependencies().addAllLater(apiDependencies);
         Provider<List<Dependency>> runtimeDependencies = extension.getAutomaticDependencies().map(enabled -> {
             if (!enabled) return List.of();
             ModuleDependency runtime = (ModuleDependency) project.getDependencies()
-                    .create(DEPENDENCY_GROUP + ":bench-runtime-neoforge-" + NEOFORGE_LINE + ":" + version);
+                    .create(group + ":bench-runtime-neoforge-" + NEOFORGE_LINE + ":" + version);
             // The APIs are already on the bench classpath; the runtime enters only as a mod JAR.
             runtime.setTransitive(false);
             return List.of(runtime);
@@ -171,7 +171,7 @@ public final class ModBenchPlugin implements Plugin<Project> {
                                          String runType, Provider<File> resultDirectory) {
         ProjectLayout layout = project.getLayout();
         String runTaskName = "runBench" + capitalized;
-        project.getTasks().register(
+        TaskProvider<VerifyBenchReportTask> verifyReport = project.getTasks().register(
                 "verifyBench" + capitalized + "Report", VerifyBenchReportTask.class, task -> {
                     task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                     task.setDescription("Verifies the " + runType + " benchmark report.");
@@ -180,6 +180,11 @@ public final class ModBenchPlugin implements Plugin<Project> {
                     // Resolved at graph time so the ordering applies only when ModDev created the run.
                     task.mustRunAfter(project.provider(() -> benchRunIfPresent(project, runTaskName)));
                 });
+        project.getTasks().register("verifyBench" + capitalized, task -> {
+            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            task.setDescription("Runs the " + runType + " benchmark and verifies its report.");
+            task.dependsOn(runTaskName, verifyReport);
+        });
         TaskProvider<Delete> cleanResults = project.getTasks().register(
                 "cleanBench" + capitalized + "Results", Delete.class, task -> {
                     task.setDescription("Deletes stale " + runType + " benchmark results before a fresh run.");

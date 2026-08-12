@@ -6,26 +6,32 @@
 
 - Mod 在 **Minecraft 26.1.2 / NeoForge 26.1.2.76** 开发线上（当前唯一验证线）。
 - Java 25 工具链、Gradle 9.x、ModDevGradle 2.x。
-- ModBench 尚未发布到远程仓库，先从本仓库发布到本地 Maven：
+- 一个已发布的不可变 JitPack tag，例如 `0.1.0`。
+
+开发 ModBench 本身时可以改用本地快照：
 
 ```bash
 ./gradlew publishToMavenLocal
 ```
 
-> 修改过 ModBench 源码后要重新执行上面这条，消费方才能拿到新版本。
+> 本地快照需要在下面两个 repository 块中把 `maven("https://jitpack.io")` 换成 `mavenLocal()`，并把版本改为 `0.1.0-SNAPSHOT`。修改过源码后要重新发布。
 
 ## 1. settings.gradle.kts
 
 ```kotlin
 pluginManagement {
     repositories {
-        mavenLocal()
+        maven("https://jitpack.io")
         gradlePluginPortal()
         mavenCentral()
         maven("https://maven.neoforged.net/releases")
     }
-    plugins {
-        id("com.zhongbai233.minecraft-bench") version providers.gradleProperty("modbench_version").get()
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.zhongbai233.minecraft-bench") {
+                useModule("com.github.zhongbai2333.BenchMod:bench-gradle-plugin:${requested.version}")
+            }
+        }
     }
 }
 
@@ -36,7 +42,7 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenLocal()
+        maven("https://jitpack.io")
         mavenCentral()
         maven("https://maven.neoforged.net/releases")
         gradlePluginPortal()
@@ -47,7 +53,7 @@ dependencyResolutionManagement {
 `gradle.properties` 里加：
 
 ```properties
-modbench_version=0.1.0-SNAPSHOT
+modbench_version=0.1.0
 ```
 
 ## 2. build.gradle.kts
@@ -56,7 +62,7 @@ modbench_version=0.1.0-SNAPSHOT
 plugins {
     java
     id("net.neoforged.moddev")
-    id("com.zhongbai233.minecraft-bench")
+    id("com.zhongbai233.minecraft-bench") version providers.gradleProperty("modbench_version").get()
 }
 
 modBench {
@@ -110,8 +116,8 @@ ServiceLoader descriptor 放在
 ## 4. 运行与验收
 
 ```bash
-./gradlew runBenchServer          # 真实 dedicated server 基准
-./gradlew runBenchClient          # 真实 integrated client 基准
+./gradlew verifyBenchServer       # 真实 dedicated server 基准 + 报告验收
+./gradlew verifyBenchClient       # 真实 integrated client 基准 + 报告验收
 ./gradlew check                   # 含生产 JAR / sources JAR 无 bench 内容检查
 ```
 
@@ -145,10 +151,10 @@ Minecraft 使用 TCP，因此 stream proxy 丢弃 bytes 只会损坏协议，并
 
 ```kotlin
 tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchServerReport") {
-    expectedScenarioId.set("mymod.server-workload")
+    expectedScenarioIds.set(listOf("mymod.server-workload"))
     expectedMetricNames.set(listOf("server.tick.duration", "mymod.your.metric"))
     expectedLoadedModIds.set(listOf("minecraft", "neoforge", "yourmodid", "modbench_runtime"))
 }
 ```
 
-完整验收标准见 [consumer checklist](../.github/skills/adapt-neoforge-mod/references/consumer-checklist.md)；可运行的完整示例见 [`examples/simple-neoforge-mod`](../examples/simple-neoforge-mod)。
+完整验收标准见 [consumer checklist](../.github/skills/adapt-neoforge-mod/references/consumer-checklist.md)；可运行的完整示例见 [`examples/simple-neoforge-mod`](../examples/simple-neoforge-mod)。JitPack tag 的发布步骤见 [releasing.md](releasing.md)。

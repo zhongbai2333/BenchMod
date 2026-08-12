@@ -79,14 +79,6 @@ tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchClie
     expectedLoadedModIds.set(listOf("minecraft", "neoforge", "simplebench", "modbench_runtime"))
 }
 
-val verifyBenchExample by tasks.registering {
-    dependsOn(tasks.named("runBenchServer"), tasks.named("verifyBenchServerReport"))
-}
-
-val verifyBenchClientExample by tasks.registering {
-    dependsOn(tasks.named("runBenchClient"), tasks.named("verifyBenchClientReport"))
-}
-
 modBench {
     targetMod = "simplebench"
     expectedProviderCount = 1

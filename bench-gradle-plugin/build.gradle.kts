@@ -5,6 +5,8 @@ plugins {
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
+    withSourcesJar()
+    withJavadocJar()
 }
 
 // ModDev must share the TestKit-injected classpath: fixtures that apply both plugins would
@@ -31,10 +33,12 @@ tasks.pluginUnderTestMetadata {
 // The plugin injects its own coordinates as bench dependencies, so it must know its version.
 tasks.processResources {
     // Local String capture keeps the filesMatching action configuration-cache serializable.
+    val modBenchGroup = project.group.toString()
     val modBenchVersion = project.version.toString()
+    inputs.property("modBenchGroup", modBenchGroup)
     inputs.property("modBenchVersion", modBenchVersion)
     filesMatching("com/zhongbai233/bench/gradle/modbench.properties") {
-        expand("version" to modBenchVersion)
+        expand("group" to modBenchGroup, "version" to modBenchVersion)
     }
 }
 

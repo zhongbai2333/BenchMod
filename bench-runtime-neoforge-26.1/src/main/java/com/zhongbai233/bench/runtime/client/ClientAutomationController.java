@@ -6,6 +6,7 @@ import com.zhongbai233.bench.api.client.gui.BenchScreenSnapshot;
 import com.zhongbai233.bench.api.client.gui.BenchGuiCaptureOptions;
 import com.zhongbai233.bench.api.client.gui.BenchGuiSelector;
 import com.zhongbai233.bench.api.client.gui.BenchGuiSelectors;
+import com.zhongbai233.bench.api.client.gui.BenchGuiRectangle;
 import com.zhongbai233.bench.api.neoforge.client.BenchCameraPath;
 import com.zhongbai233.bench.api.neoforge.client.BenchCameraPlayback;
 import com.zhongbai233.bench.api.neoforge.client.BenchCaptureOptions;
@@ -31,8 +32,15 @@ import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.util.Util;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 /** Implements deterministic local-player control and render-thread framebuffer capture. */
 final class ClientAutomationController implements BenchClientAutomation {
@@ -469,6 +477,117 @@ final class ClientAutomationController implements BenchClientAutomation {
         }
 
         @Override
+        public boolean click(BenchGuiSelector selector, int button, int modifiers) {
+            requireClientThread();
+            Screen screen = currentScreen();
+            Point center = centerOf(selector);
+            MouseButtonEvent event = new MouseButtonEvent(
+                    center.x(), center.y(), new MouseButtonInfo(button, modifiers));
+            boolean handled = dispatchMouseClick(screen, event, false);
+            if (minecraft.screen == screen) handled |= dispatchMouseRelease(screen, event);
+            return handled;
+        }
+
+        @Override
+        public boolean doubleClick(BenchGuiSelector selector) {
+            requireClientThread();
+            Screen screen = currentScreen();
+            Point center = centerOf(selector);
+            MouseButtonEvent event = new MouseButtonEvent(center.x(), center.y(), new MouseButtonInfo(0, 0));
+            boolean first = dispatchMouseClick(screen, event, false);
+            if (minecraft.screen != screen) return first;
+            first |= dispatchMouseRelease(screen, event);
+            if (minecraft.screen != screen) return first;
+            boolean second = dispatchMouseClick(screen, event, true);
+            if (minecraft.screen == screen) second |= dispatchMouseRelease(screen, event);
+            return first | second;
+        }
+
+        @Override
+        public boolean scroll(BenchGuiSelector selector, double horizontal, double vertical) {
+            requireClientThread();
+            Screen screen = currentScreen();
+            Point center = centerOf(selector);
+            // ClientHooks derives event coordinates from the physical cursor, while this API
+            // intentionally targets the selector center. Post equivalent events directly so
+            // NeoForge listeners and the Screen observe the same deterministic coordinates.
+            boolean handled = NeoForge.EVENT_BUS.post(new ScreenEvent.MouseScrolled.Pre(
+                    screen, center.x(), center.y(), horizontal, vertical)).isCanceled();
+            if (minecraft.screen != screen) return handled;
+            if (!handled) {
+                handled = screen.mouseScrolled(center.x(), center.y(), horizontal, vertical);
+                if (!handled && minecraft.screen == screen) {
+                    NeoForge.EVENT_BUS.post(new ScreenEvent.MouseScrolled.Post(
+                            screen, center.x(), center.y(), horizontal, vertical));
+                }
+            }
+            if (minecraft.screen == screen) screen.afterMouseAction();
+            return handled;
+        }
+
+        @Override
+        public boolean drag(BenchGuiSelector selector, double deltaX, double deltaY,
+                            int button, int modifiers) {
+            requireClientThread();
+            if (!Double.isFinite(deltaX) || !Double.isFinite(deltaY)) {
+                throw new IllegalArgumentException("GUI drag delta must be finite");
+            }
+            Screen screen = currentScreen();
+            Point start = centerOf(selector);
+            Point end = new Point(start.x() + deltaX, start.y() + deltaY);
+            MouseButtonInfo buttonInfo = new MouseButtonInfo(button, modifiers);
+            boolean handled = dispatchMouseClick(screen,
+                    new MouseButtonEvent(start.x(), start.y(), buttonInfo), false);
+            if (minecraft.screen != screen) return handled;
+            handled |= dispatchMouseDrag(screen,
+                    new MouseButtonEvent(end.x(), end.y(), buttonInfo), deltaX, deltaY);
+            if (minecraft.screen == screen) {
+                handled |= dispatchMouseRelease(screen,
+                        new MouseButtonEvent(end.x(), end.y(), buttonInfo));
+            }
+            return handled;
+        }
+
+        @Override
+        public boolean pressKey(int key, int scancode, int modifiers) {
+            requireClientThread();
+            Screen screen = currentScreen();
+            KeyEvent event = new KeyEvent(key, scancode, modifiers);
+            screen.afterKeyboardAction();
+            boolean pressed = ClientHooks.onScreenKeyPressedPre(screen, event);
+            if (!pressed) {
+                pressed = screen.keyPressed(event);
+                if (!pressed) pressed = ClientHooks.onScreenKeyPressedPost(screen, event);
+            }
+            if (minecraft.screen != screen) return pressed;
+            boolean released = ClientHooks.onScreenKeyReleasedPre(screen, event);
+            if (!released) {
+                released = screen.keyReleased(event);
+                if (!released) released = ClientHooks.onScreenKeyReleasedPost(screen, event);
+            }
+            return pressed | released;
+        }
+
+        @Override
+        public boolean typeText(String text) {
+            requireClientThread();
+            Screen screen = currentScreen();
+            Objects.requireNonNull(text, "text");
+            boolean handled = false;
+            for (int codepoint : text.codePoints().toArray()) {
+                CharacterEvent event = new CharacterEvent(codepoint);
+                boolean characterHandled = ClientHooks.onScreenCharTypedPre(screen, event);
+                if (!characterHandled) {
+                    characterHandled = screen.charTyped(event);
+                    if (!characterHandled) ClientHooks.onScreenCharTypedPost(screen, event);
+                }
+                handled |= characterHandled;
+                if (minecraft.screen != screen) break;
+            }
+            return handled;
+        }
+
+        @Override
         public boolean active() {
             return activeGuiSession == this && guiGeneration == generation;
         }
@@ -485,6 +604,59 @@ final class ClientAutomationController implements BenchClientAutomation {
         private void ensureActive() {
             if (!active()) throw new IllegalStateException("GUI debugging session is no longer active");
         }
+
+        private Screen currentScreen() {
+            ensureActive();
+            Screen screen = minecraft.screen;
+            if (screen == null || !expectedScreen.isInstance(screen)) {
+                throw new IllegalStateException("Expected Screen " + expectedScreen.getName()
+                        + " is no longer open");
+            }
+            return screen;
+        }
+
+        private Point centerOf(BenchGuiSelector selector) {
+            Objects.requireNonNull(selector, "selector");
+            BenchGuiRectangle bounds = select(selector).requireMatch().bounds();
+            if (bounds.width() < 1 || bounds.height() < 1) {
+                throw new IllegalStateException("Cannot interact with zero-sized GUI bounds: " + bounds);
+            }
+            return new Point(bounds.x() + bounds.width() / 2.0, bounds.y() + bounds.height() / 2.0);
+        }
+
+        private boolean dispatchMouseClick(Screen screen, MouseButtonEvent event, boolean doubleClick) {
+            screen.afterMouseAction();
+            boolean handled = ClientHooks.onScreenMouseClickedPre(screen, event, doubleClick);
+            if (!handled) {
+                handled = screen.mouseClicked(event, doubleClick);
+                handled = ClientHooks.onScreenMouseClickedPost(screen, event, doubleClick, handled);
+            }
+            return handled;
+        }
+
+        private boolean dispatchMouseRelease(Screen screen, MouseButtonEvent event) {
+            boolean handled = ClientHooks.onScreenMouseReleasedPre(screen, event);
+            if (!handled) {
+                handled = screen.mouseReleased(event);
+                handled = ClientHooks.onScreenMouseReleasedPost(screen, event, handled);
+            }
+            return handled;
+        }
+
+        private boolean dispatchMouseDrag(Screen screen, MouseButtonEvent event,
+                                          double deltaX, double deltaY) {
+            boolean handled = ClientHooks.onScreenMouseDragPre(screen, event, deltaX, deltaY);
+            if (minecraft.screen != screen) return handled;
+            if (!handled) {
+                handled = screen.mouseDragged(event, deltaX, deltaY);
+                if (!handled && minecraft.screen == screen) {
+                    ClientHooks.onScreenMouseDragPost(screen, event, deltaX, deltaY);
+                }
+            }
+            return handled;
+        }
+
+        private record Point(double x, double y) {}
     }
 
     private void failGuiRequests(ActiveGuiSession session, Throwable failure) {

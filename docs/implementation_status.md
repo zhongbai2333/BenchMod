@@ -9,7 +9,7 @@
 | Phase 0：ADR 与接口原型 | 已完成 | Core SPI、ServiceLoader、同步生命周期原型、Schema 1.0.0 与关键 ADR 已落地并有测试。 |
 | Phase 1：Server MVP | 纵切可运行，剩真实业务试点 | 独立消费方已通过真实 dedicated server E2E；报告含完整环境/版本/loadedMods、per-phase 计时与 tick/自定义指标统计；Plugin 自动注册验证/清理/收集任务；仅剩真实 Super Lead 试点。 |
 | Phase 2：可靠性与 GameTest | 部分提前实现 | 已有 partial report、Provider 兼容诊断、configuration cache 验证、timeout thread dump、artifact collector、失败产物 bundle、参数/过滤和正式 Schema 验证；GameTest、JUnit XML 与完整 TestKit 矩阵未完成。 |
-| Phase 3：Client 自动化 | 基本完成，GUI 第一纵切 | Client Provider/Context、client tick runner、frame sampler、自动 integrated world、图形基线、相机与构图、渲染/环境门禁、截图与像素比对、JFR/样本/Markdown、GUI interaction-tree 快照、strict selector、expected-Screen scope 和 selector 驱动控件区域截图已实现。普通 client 自动化已有真实 E2E；GUI 调试仍缺外部消费方真实 E2E、自动输入、tooltip/完整视觉树与失败 evidence group。 |
+| Phase 3：Client 自动化 | 基本完成，GUI 交互纵切 | Client Provider/Context、client tick runner、frame sampler、自动 integrated world、图形基线、相机与构图、渲染/环境门禁、截图与像素比对、JFR/样本/Markdown、GUI interaction-tree 快照、strict selector、等待/点击/滚动/拖动/键盘/Unicode 输入、expected-Screen scope 和 selector 驱动控件区域截图已实现。普通 client 自动化已有真实 E2E；GUI 交互仍缺外部消费方真实 E2E、tooltip/完整视觉树与失败 evidence group。 |
 | Phase 3.5：双端专服与网络模拟 | 数据面原型 | paired orchestration 与网络语义 ADR 已接受；`bench-network-core` 已提供方向性 profile、能力协商、规范化 hash 和确定性 seed；`bench-network-proxy` 已实现 fixed-quantum + idle flush 的双向 TCP 转发、延迟/抖动/带宽/pause/abort、指标与 schema 化 JSONL 事件，并有 Windows loopback 回归测试。separate client、coordinator、paired report 与双 JVM Minecraft E2E 尚未实现。 |
 | Phase 4：A/B 回归 | 未开始 | Baseline/candidate、多 JVM fork、稳健统计和 PR summary 尚未实现。 |
 | Phase 5：生态化 | 未开始 | Adapter Mod、catalog/BOM、标准场景包和 dashboard 尚未实现。 |
@@ -75,7 +75,7 @@
 - 固定容量、frame 热路径无分配的 interval sampler，输出 sample/drop/mean/P95/P99/max 基础诊断。
 - Plugin 自动创建隔离的 `runBenchClient`、client game directory 和 result directory。
 - Runtime-owned `BenchClientAutomation` 支持绝对玩家位置/朝向、插值移动、look-at、停止输入/速度、HUD 显隐和 PNG 截图；截图异步落盘并带 SHA-256 与字节数登记为 report artifact。
-- `BenchGuiSession` 提供 scenario-scoped expected-Screen 授权、按 live listener identity 注册稳定语义名、detached interaction-tree 快照、0/1/ambiguous/nth strict selector，以及 render-post 同帧重校验后的控件区域截图；GUI scale 以四边 floor/ceil 映射到 framebuffer 并 clamp。该树仅覆盖 `GuiEventListener`/`ContainerEventHandler`，不声称包含纯 `Renderable` 视觉元素。
+- `BenchGuiSession` 提供 scenario-scoped expected-Screen 授权、按 live listener identity 注册稳定语义名、detached interaction-tree 快照、0/1/ambiguous/nth strict selector、跨 tick 等待/消失等待、selector 中心点击/双击/滚动/拖动、按键与 Unicode 输入，以及 render-post 同帧重校验后的控件区域截图；输入复刻 NeoForge Screen pre/post hook 路径。该树仅覆盖 `GuiEventListener`/`ContainerEventHandler`，不声称包含纯 `Renderable` 视觉元素。
 - `BenchCameraFramer` 根据 world-space `BenchBounds3`、观察方向、实际视口宽高比和 FOV 求解完整 bounds 入镜的 eye pose；`frameTarget` 自动补偿玩家眼高，`holdFramedTarget`/`holdPose` 在每个 client tick 重施机位并在场景边界释放，避免高空截图受重力漂移。权威 PNG 保留原始 framebuffer，不做事后放大裁剪。
 - `BenchCameraPath` 关键帧时间轴：线性/缓入/缓出/缓入缓出/smooth-step 插值、按 tick 或按每秒方块数的固定速度、`hold` 静止段、逐关键帧自动截图、单次/循环/往返模式、逐帧插值与逐 tick 快照两种应用方式。采样是纯函数，可脱离 Minecraft 单元测试。
 - `BenchCameraPlayback` 在截图落盘前暂停时间轴并锁定当前 pose，播放结束后继续保持最后一个关键帧，保证截图与关键帧一一对应且播放后不会漂移。
@@ -101,11 +101,11 @@
 - 自动创建默认 `bench` source set 和 ModDev `benchServer` run。
 - 通过公开 ModDev DSL 绑定 target Mod transformed source folders。
 - `benchRuntimeMod` 仅进入 bench runtime classpath，不进入普通 `runtimeClasspath`。
-- 全部模块（core/neoforge API、Runtime、Gradle plugin 含 marker、report schema）可 `publishToMavenLocal`；POM 无 Minecraft/NeoForge 泄漏；独立示例已改为纯 mavenLocal 消费（plugin marker 解析 + 坐标依赖），configuration cache 复用已验证。
+- 五个公共模块（core/neoforge API、Runtime、Gradle plugin、report schema）具备 sources/javadoc JAR、完整 POM 和 JitPack 坐标；`verifyReleaseReadiness` 验证 tests 与 Maven Local publication，CI 另行验证 Wrapper，JitPack 环境坐标已有本地模拟验证。独立示例继续作为 mavenLocal 开发快照消费方。
 - 插件按自身版本自动注入 `benchImplementation`（core + neoforge API）与 `benchRuntimeMod`（Runtime，非传递）；`modBench.automaticDependencies = false` 可退出；消费方零依赖声明即可接入。
 - `verifyProductionJarHasNoBenchContent` 同时校验 sources JAR（对照 bench 源码目录），发布物隔离纳入 `check`。
 - 外部接入步骤文档：`docs/consumer-quickstart.md`。
-- Plugin 自动注册通用任务：`verifyProductionJarHasNoBenchContent`（挂入 `check`，检查 bench source set 输出重叠、ModBench 包泄漏与 ServiceLoader descriptor，不再含示例特定判断）、`verifyBenchServerReport`/`verifyBenchClientReport`（默认报告路径与 runType，消费方只补场景/指标期望）、`cleanBenchServerResults`/`cleanBenchClientResults`（`runBench*` 前自动清理旧结果）、`collectBenchServerArtifacts`/`collectBenchClientArtifacts` + 聚合 `collectBenchArtifacts`（`runBench*` 被 finalizedBy，失败也把报告/日志/crash-reports 收进 `build/modBench/bundles/<suite>/<runType>` 并写 manifest.json）。
+- Plugin 自动注册通用任务：`verifyProductionJarHasNoBenchContent`（挂入 `check`）、组合 run + report 的 `verifyBenchServer`/`verifyBenchClient`、可独立复验的 `verifyBench*Report`（支持单个或多个期望场景）、`cleanBench*Results` 和失败也会运行的 `collectBench*Artifacts`。
 - 示例生产 JAR 不包含 Provider 或 ServiceLoader descriptor；TestKit 覆盖 descriptor 泄漏的负例。
 - TestKit 消费方形状矩阵（真实 ModDev 2.0.141 经共享 plugin-under-test classpath 参与）：ModBench 在 ModDev 之前/之后应用均生成 `runBench*`；多 Mod 项目缺 `targetMod` 给出明确失败、指定后正常；Groovy DSL 消费方可编译并通过生产 JAR 检查；Unicode（中文）项目路径可编译验证；`benchRuntimeMod` 不泄漏进普通 `runtimeClasspath` 且确实进入 bench runtime classpath；无 java 插件时安静不作为而非崩溃。
 
@@ -136,7 +136,7 @@
 1. Plugin 仍是单一默认 suite，不是计划中的 `NamedDomainObjectContainer<BenchSuiteSpec>` 多 suite DSL；client 结果目录在 Plugin 与 ModDevConfigurer 中重复推导。
 2. 单 tick 内的真死锁（场景阻塞 server thread）只能靠 Minecraft watchdog，Runtime 的 timeout dump 覆盖的是跨 tick 挂起。
 3. `report.md` 是唯一派生视图，JUnit XML 未实现；截图比对仅为像素级（无感知哈希/SSIM）。
-4. 仅发布到 mavenLocal，尚无远程 Maven 仓库；javadoc JAR、POM/module metadata 与普通 ModDev run 的完整隔离矩阵仍待加强。
+4. JitPack 发布准备和 CI 已就绪，但尚未创建第一个公开 tag 并从全新外部消费方验证远程解析；普通 ModDev run 的完整隔离矩阵仍待加强。
 5. TestKit 已覆盖 Groovy DSL、多 Mod、应用顺序、Unicode 路径、首个白名单 `-PmodBench.scenarios` 转发与 classpath 隔离；仍缺多 suite、多项目逐子项目应用、更多白名单属性与 ModDev 1.x 友好失败。
 6. JFR 已实现，GameTest 尚未实现；单 tick 内阻塞和 GameTest bridge 仍是下一阶段可靠性重点。
 

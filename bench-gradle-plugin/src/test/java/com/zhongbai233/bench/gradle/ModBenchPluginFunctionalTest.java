@@ -133,6 +133,33 @@ class ModBenchPluginFunctionalTest {
     }
 
     @Test
+    void verifyBenchServerReportChecksMultipleExpectedScenarios() throws Exception {
+        writeMinimalProject();
+        writeValidReport("PASSED");
+        write("build.gradle.kts", Files.readString(projectDirectory.resolve("build.gradle.kts")) + """
+
+                tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchServerReport") {
+                    expectedScenarioIds.set(listOf("fixture.server-one", "fixture.server-two"))
+                }
+                """);
+
+        BuildResult result = run("verifyBenchServerReport");
+
+        assertEquals(TaskOutcome.SUCCESS, outcome(result, ":verifyBenchServerReport"));
+    }
+
+    @Test
+    void verifyBenchServerIsAStandardRunAndReportLifecycleTask() throws Exception {
+        writeMinimalProject();
+
+        BuildResult result = run("tasks", "--all");
+
+        assertTrue(result.getOutput().contains("verifyBenchServer"));
+        assertTrue(result.getOutput().contains("verifyBenchClient"));
+        assertTrue(result.getOutput().contains("Runs the server benchmark and verifies its report."));
+    }
+
+    @Test
     void serverWorldIsResetWhenProvisioningChanges() throws Exception {
         write("settings.gradle.kts", "rootProject.name = \"fixture\"\n");
         write("build.gradle.kts", """
@@ -192,7 +219,19 @@ class ModBenchPluginFunctionalTest {
                                     "environment": {
                                         "os": {}, "java": {}, "versions": {}, "loadedMods": []
                                     },
-                                    "artifacts": [], "providers": [], "scenarios": [],
+                                    "artifacts": [], "providers": [],
+                                    "scenarios": [
+                                        {
+                                            "id": "fixture.server-one", "providerId": "fixture",
+                                            "status": "PASSED", "workloadCorrect": true,
+                                            "failure": null, "phases": [], "metrics": []
+                                        },
+                                        {
+                                            "id": "fixture.server-two", "providerId": "fixture",
+                                            "status": "PASSED", "workloadCorrect": true,
+                                            "failure": null, "phases": [], "metrics": []
+                                        }
+                                    ],
                                     "summary": {"status": "%s", "counts": {}},
                                     "diagnostics": []
                                 }

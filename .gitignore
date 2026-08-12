@@ -21,6 +21,8 @@ bin/
 
 # Package Files #
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
+!examples/simple-neoforge-mod/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
