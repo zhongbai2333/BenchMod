@@ -23,7 +23,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Set up Java 25
+      - name: Set up Java 21 and 25
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -57,3 +57,36 @@ jobs:
             **/build/test-results/**
           if-no-files-found: ignore
           retention-days: 7
+
+  released-consumer:
+    name: Verify released JitPack consumer contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Keep this job independent from Maven Local and every Gradle cache used by
+      # the source-publication preflight above.
+      GRADLE_USER_HOME: ${{ runner.temp }}/gradle-jitpack-consumer
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21 and 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            25
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v6
+
+      - name: Resolve and compile the external consumer
+        run: >-
+          ./gradlew -p examples/simple-neoforge-mod
+          compileBenchJava
+          dependencies --configuration benchRuntimeClasspath
+          --refresh-dependencies
+          --no-configuration-cache
+          --no-daemon
+          --stacktrace

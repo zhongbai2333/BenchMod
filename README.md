@@ -2,6 +2,10 @@
 
 ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它将构建期编排、游戏内执行和业务 workload 分成 Gradle Plugin、Runtime Mod 与 test-only Provider 三层。
 
+文档统一入口见 [docs/README.md](docs/README.md)。当前能力以
+[docs/implementation_status.md](docs/implementation_status.md) 为准，长期设计见
+[docs/mod_bench_implementation_plan.md](docs/mod_bench_implementation_plan.md)。
+
 ## 当前状态
 
 项目已完成 **Phase 0**，并已跑通 **Phase 1（Server MVP）技术纵切**；当前处于 Phase 1 真实业务验收收尾，同时已完成较多 Phase 2 可靠性与 Phase 3 integrated-client 能力：
@@ -58,7 +62,7 @@ Plugin 自动注册整套验证与收集任务：`verifyProductionJarHasNoBenchC
 
 每个场景的原始指标样本导出为 `artifacts/samples/<scenario>.jsonl`（每 metric×phase 一行），`summary.json` 旁另生成人类可读的 `report.md` 派生视图。`environment.git` 经 configuration-cache 安全的 git 探测记录本地 commit 与 dirty 状态。帧稳定判据与截图门禁预算可经 `clientStableFrameRatio` / `clientCaptureGateFrameBudget` 配置，全部实验参数都在 `run.parameters` 里。
 
-正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。仓库内示例继续用 `mavenLocal` 验证开发中的快照。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
+正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。仓库内独立示例默认使用已发布的 `0.1.1`，并由 CI 在隔离 Gradle 用户目录中验证远程解析；开发当前源码时可显式传入 `-PmodBenchLocal=true` 切换 Maven Local。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，示例说明见 [examples/simple-neoforge-mod/README.md](examples/simple-neoforge-mod/README.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
 
 ### Client MVP
 

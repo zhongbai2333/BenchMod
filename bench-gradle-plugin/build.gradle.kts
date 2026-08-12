@@ -12,10 +12,11 @@ java {
 // ModDev must share the TestKit-injected classpath: fixtures that apply both plugins would
 // otherwise load ModDev in a child classloader our classes cannot link against.
 val modDevForTestKit: Configuration by configurations.creating
+val modDevVersion = providers.gradleProperty("modDevVersion").orElse("2.0.141")
 
 dependencies {
-    compileOnly("net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:${providers.gradleProperty("modDevVersion").orElse("2.0.141").get()}")
-    modDevForTestKit("net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:${providers.gradleProperty("modDevVersion").orElse("2.0.141").get()}")
+    compileOnly("net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:${modDevVersion.get()}")
+    modDevForTestKit("net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:${modDevVersion.get()}")
     implementation(project(":bench-report-schema"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.19.2")
     implementation("com.networknt:json-schema-validator:1.5.9")
