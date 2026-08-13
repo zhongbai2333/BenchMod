@@ -6,7 +6,6 @@ import com.zhongbai233.bench.network.NetworkDirectionProfile;
 import com.zhongbai233.bench.network.NetworkFault;
 import com.zhongbai233.bench.network.NetworkFaultKind;
 import com.zhongbai233.bench.network.NetworkSeedDerivation;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

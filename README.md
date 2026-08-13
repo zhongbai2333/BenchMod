@@ -49,6 +49,11 @@ NeoForge 开发线。ModBench 的项目版本由根目录 `gradle.properties` �
 
 完整设计与验收标准见 [`docs/mod_bench_implementation_plan.md`](docs/mod_bench_implementation_plan.md)。
 
+如果修改 `modBenchVersion` 后 VS Code Java 扩展仍报告缺少旧版本的
+`build/libs/*.jar`，而 Wrapper 构建已经通过，这是 Eclipse JDT 保存的旧 Gradle
+classpath 快照。先执行 `Java: Clean Java Language Server Workspace` 并重启，再刷新
+Gradle 项目；不要复制或保留旧版本 JAR 来掩盖缓存问题。
+
 准备让真实 NeoForge Mod（例如 SuperLead）接入时，先阅读 [`docs/superlead-adoption-readiness.md`](docs/superlead-adoption-readiness.md)，确认版本线、Provider 业务 API、就绪判定、精确清理和 dedicated-server 验收门禁。
 
 ### Dedicated server smoke

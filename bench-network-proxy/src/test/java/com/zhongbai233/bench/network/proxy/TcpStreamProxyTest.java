@@ -224,8 +224,9 @@ class TcpStreamProxyTest {
         try (InteractiveEchoServer upstream = new InteractiveEchoServer();
              TcpStreamProxy proxy = new TcpStreamProxy(new TcpStreamProxyConfig(
                      LOOPBACK, 0, upstream.address(), passthrough(), "MEASURE",
-                     Duration.ofSeconds(2), Duration.ofMillis(200), failingSink)).start();
+                     Duration.ofSeconds(2), Duration.ofMillis(200), failingSink));
              Socket client = new Socket()) {
+            proxy.start();
             client.connect(proxy.listenAddress());
             client.setSoTimeout(1_000);
             client.getOutputStream().write(33);
