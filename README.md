@@ -18,6 +18,15 @@ ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它
 - `examples/simple-neoforge-mod`：独立消费方示例，验证 Plugin、`src/bench` Provider 和 Runtime 隔离；
 - `docs/adr`：Provider、报告和 ModDev 公共边界的架构决策记录。
 
+### 模块命名约定
+
+目录名中的 `neoforge-26.1` 表示该模块适配的 **NeoForge/Minecraft 兼容开发线**，不是
+ModBench 自身的发布版本，也不是构建生成的临时目录。平台无关模块保持
+`bench-api-core`、`bench-report-schema` 等名称；直接依赖 NeoForge 的 API 和 Runtime
+使用 `bench-api-neoforge-26.1`、`bench-runtime-neoforge-26.1`，以便未来可以并存其他
+NeoForge 开发线。ModBench 的项目版本由根目录 `gradle.properties` 中的
+`modBenchVersion` 统一管理。
+
 当前 Server MVP 纵切已针对 NeoForge `26.1.2.76` / Minecraft `26.1.2` dedicated server 配置并验证：Runtime `@Mod` 启动、游戏 classloader ServiceLoader、跨 tick workload、partial/final JSON 原子写入、自动停服和 Draft 2020-12 Schema 验证均已闭环。
 
 客户端纵切现已具备 `BenchClientProvider`、client tick 生命周期、`RenderFrameEvent.Pre` 帧间隔采样、关键帧 camera 时间轴（缓动、固定速度、循环/往返）、渲染就绪与帧稳定门禁、环境有效性判定、可隐藏 HUD 的 PNG 截图（带 SHA-256）、GUI interaction-tree 快照/严格 selector/点击、滚动、拖动、按键、Unicode 输入/控件区域截图、失败时自动抓帧、client 报告和 `runBenchClient`。Runtime 会自动创建或重用固定 seed 的 integrated world，应用窗口、VSync、FPS cap 与视距基线，执行场景并自动退出；普通 client 自动化的独立消费方真实 E2E 已通过，GUI 交互仍待外部消费方真实 E2E。

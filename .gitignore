@@ -4,6 +4,7 @@ build/
 .idea/
 *.iml
 .vscode/
+.DS_Store
 run/
 logs/
 crash-reports/
