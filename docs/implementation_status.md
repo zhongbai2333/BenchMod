@@ -1,6 +1,6 @@
 # ModBench 实现进度
 
-> 评估日期：2026-08-12。进度按 `docs/mod_bench_implementation_plan.md` 的可验证交付物计算，不以文件数量代替完成度。
+> 评估日期：2026-08-13。进度按 `docs/mod_bench_implementation_plan.md` 的可验证交付物计算，不以文件数量代替完成度。
 
 ## 总体判断
 
@@ -10,7 +10,7 @@
 | Phase 1：Server MVP | 纵切可运行，剩真实业务试点 | 独立消费方已通过真实 dedicated server E2E；报告含完整环境/版本/loadedMods、per-phase 计时与 tick/自定义指标统计；Plugin 自动注册验证/清理/收集任务；仅剩真实 Super Lead 试点。 |
 | Phase 2：可靠性与 GameTest | 部分提前实现 | 已有 partial report、Provider 兼容诊断、configuration cache 验证、timeout thread dump、artifact collector、失败产物 bundle、参数/过滤和正式 Schema 验证；GameTest、JUnit XML 与完整 TestKit 矩阵未完成。 |
 | Phase 3：Client 自动化 | 基本完成，GUI 交互纵切 | Client Provider/Context、client tick runner、frame sampler、自动 integrated world、图形基线、相机与构图、渲染/环境门禁、截图与像素比对、JFR/样本/Markdown、GUI interaction-tree 快照、strict selector、等待/点击/滚动/拖动/键盘/Unicode 输入、expected-Screen scope 和 selector 驱动控件区域截图已实现。普通 client 自动化已有真实 E2E；GUI 交互仍缺外部消费方真实 E2E、tooltip/完整视觉树与失败 evidence group。 |
-| Phase 3.5：双端专服与网络模拟 | 数据面原型 | paired orchestration 与网络语义 ADR 已接受；`bench-network-core` 已提供方向性 profile、能力协商、规范化 hash 和确定性 seed；`bench-network-proxy` 已实现 fixed-quantum + idle flush 的双向 TCP 转发、延迟/抖动/带宽/pause/abort、指标与 schema 化 JSONL 事件，并有 Windows loopback 回归测试。separate client、coordinator、paired report 与双 JVM Minecraft E2E 尚未实现。 |
+| Phase 3.5：双端专服与网络模拟 | passthrough coordinator + 数据面原型 | `runBenchPaired` 已编排 dedicated server 与 1–8 个隔离 physical client，生成 participant/paired reports、等待全员稳定就绪、支持预期断线重连并联合回收进程；`bench-network-core` 与 `bench-network-proxy` 已提供方向性 profile、能力协商、确定性 TCP 转发与 schema 化事件。session payload 握手、proxy 接线和双 JVM Minecraft E2E 尚未完成。 |
 | Phase 4：A/B 回归 | 未开始 | Baseline/candidate、多 JVM fork、稳健统计和 PR summary 尚未实现。 |
 | Phase 5：生态化 | 未开始 | Adapter Mod、catalog/BOM、标准场景包和 dashboard 尚未实现。 |
 
@@ -144,8 +144,8 @@
 
 按风险和依赖顺序推进：
 
-1. 完成 dedicated server + separate client passthrough paired run、session/nonce 握手和联合退出。
-2. 把现有无管理员 TCP data plane 接入 coordinator，登记 network profile、metrics 与 backend event artifacts，并完成异常退出/残留线程清理。
+1. 为现有 paired passthrough 增加 session/nonce payload 握手、跨 participant barrier 和真实多客户端 Minecraft E2E。
+2. 把现有无管理员 TCP data plane 接入 coordinator，登记 network profile、metrics 与 backend event artifacts，并扩充异常退出/残留线程回归。
 3. 增加 paired/report schema、Windows 双 JVM Minecraft E2E；随后再接 `tc netem`/WinDivert 等真实 packet backend。
 
 ## 项目 AI 定制

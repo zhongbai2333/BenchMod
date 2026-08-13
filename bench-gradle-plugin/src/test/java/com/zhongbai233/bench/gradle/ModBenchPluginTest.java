@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -44,6 +45,18 @@ class ModBenchPluginTest {
 
         assertTrue(project.getConfigurations().getByName("benchImplementation").getAllDependencies().isEmpty());
         assertTrue(project.getConfigurations().getByName("benchRuntimeMod").getAllDependencies().isEmpty());
+    }
+
+    @Test
+    void pairedTaskReceivesOnlyExplicitForwardedProjectProperties() {
+        Project project = apply();
+        ModBenchExtension extension = project.getExtensions().getByType(ModBenchExtension.class);
+        extension.getPairedProjectProperties().put("fixtureFlag", "enabled");
+
+        PairedBenchTask task = (PairedBenchTask) project.getTasks().getByName("runBenchPaired");
+        assertEquals(Map.of("fixtureFlag", "enabled"), task.getParticipantProjectProperties().get());
+        assertEquals(project.getLayout().getBuildDirectory().get().getAsFile(),
+                task.getBuildDirectory().get().getAsFile());
     }
 
     private static Project apply() {

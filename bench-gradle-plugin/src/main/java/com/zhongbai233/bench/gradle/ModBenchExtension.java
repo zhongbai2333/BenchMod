@@ -4,7 +4,9 @@ import java.io.File;
 import javax.inject.Inject;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.MapProperty;
 
+/** User-facing Gradle DSL for configuring benchmark sources, runs, and paired participants. */
 public abstract class ModBenchExtension {
     private final Property<Boolean> automaticDependencies;
     private final Property<String> targetMod;
@@ -33,9 +35,16 @@ public abstract class ModBenchExtension {
     private final Property<Integer> pairedPort;
     private final Property<Integer> pairedStartupTimeoutSeconds;
     private final Property<Integer> pairedClientTimeoutSeconds;
+    private final Property<Integer> pairedClientCount;
     private final Property<String> pairedServerScenarios;
     private final Property<String> pairedClientScenarios;
+    private final MapProperty<String, String> pairedProjectProperties;
 
+    /**
+     * Creates the extension properties and applies reproducible defaults.
+     *
+     * @param objects Gradle object factory used to create lazy properties
+     */
     @Inject
     public ModBenchExtension(ObjectFactory objects) {
         automaticDependencies = objects.property(Boolean.class).convention(true);
@@ -65,46 +74,72 @@ public abstract class ModBenchExtension {
         pairedPort = objects.property(Integer.class).convention(0);
         pairedStartupTimeoutSeconds = objects.property(Integer.class).convention(180);
         pairedClientTimeoutSeconds = objects.property(Integer.class).convention(900);
+        pairedClientCount = objects.property(Integer.class).convention(1);
         pairedServerScenarios = objects.property(String.class).convention("");
         pairedClientScenarios = objects.property(String.class).convention("");
+        pairedProjectProperties = objects.mapProperty(String.class, String.class).convention(java.util.Map.of());
     }
 
-    /** Adds the matching ModBench API and Runtime dependencies automatically; disable to manage them manually. */
+    /** @return whether matching ModBench API and Runtime dependencies are added automatically */
     public Property<Boolean> getAutomaticDependencies() { return automaticDependencies; }
+    /** @return target Mod id, or blank to infer the only declared Mod */
     public Property<String> getTargetMod() { return targetMod; }
+    /** @return optional result directory override */
     public Property<File> getResultDirectory() { return resultDirectory; }
+    /** @return deterministic benchmark seed */
     public Property<Long> getSeed() { return seed; }
+    /** @return expected number of discovered providers */
     public Property<Integer> getExpectedProviderCount() { return expectedProviderCount; }
+    /** @return default lifecycle phase timeout in ticks */
     public Property<Long> getPhaseTimeoutTicks() { return phaseTimeoutTicks; }
+    /** @return integrated-client benchmark world id */
     public Property<String> getClientWorldId() { return clientWorldId; }
+    /** @return whether the integrated-client world is created or opened automatically */
     public Property<Boolean> getClientAutoWorld() { return clientAutoWorld; }
+    /** @return requested client window width */
     public Property<Integer> getClientWindowWidth() { return clientWindowWidth; }
+    /** @return requested client window height */
     public Property<Integer> getClientWindowHeight() { return clientWindowHeight; }
+    /** @return whether VSync is enabled during client benchmarks */
     public Property<Boolean> getClientVsync() { return clientVsync; }
+    /** @return client frame-rate limit */
     public Property<Integer> getClientFpsLimit() { return clientFpsLimit; }
+    /** @return client render distance in chunks */
     public Property<Integer> getClientRenderDistance() { return clientRenderDistance; }
+    /** @return client simulation distance in chunks */
     public Property<Integer> getClientSimulationDistance() { return clientSimulationDistance; }
+    /** @return whether losing window focus invalidates the run */
     public Property<Boolean> getClientRequireWindowFocus() { return clientRequireWindowFocus; }
+    /** @return maximum stable-frame ratio accepted by the readiness gate */
     public Property<Double> getClientStableFrameRatio() { return clientStableFrameRatio; }
+    /** @return maximum frames allowed for a screenshot capture gate */
     public Property<Integer> getClientCaptureGateFrameBudget() { return clientCaptureGateFrameBudget; }
-    /** Overworld generation of the client benchmark world: {@code normal}, {@code flat}, or {@code void}. */
+    /** @return overworld generation preset: {@code normal}, {@code flat}, or {@code void} */
     public Property<String> getClientWorldPreset() { return clientWorldPreset; }
-    /** Dimension the player is placed in before client scenarios: {@code overworld}, {@code the_nether}, {@code the_end}. */
+    /** @return dimension used before client scenarios: {@code overworld}, {@code the_nether}, or {@code the_end} */
     public Property<String> getClientDimension() { return clientDimension; }
-    /** Dedicated server {@code level-type}, e.g. {@code minecraft:normal} or {@code minecraft:flat}. */
+    /** @return dedicated server {@code level-type}, such as {@code minecraft:normal} */
     public Property<String> getServerLevelType() { return serverLevelType; }
-    /** Dedicated server {@code generator-settings} JSON for flat presets; empty for none. */
+    /** @return dedicated server {@code generator-settings} JSON, or blank for none */
     public Property<String> getServerGeneratorSettings() { return serverGeneratorSettings; }
-    /** Records one low-overhead JFR profile under {@code artifacts/jfr/} for each executed scenario. */
+    /** @return whether every executed scenario records a low-overhead JFR profile */
     public Property<Boolean> getJfrEnabled() { return jfrEnabled; }
-    /** Comma-separated scenario ids (trailing {@code *} for prefixes); blank runs everything. */
+    /** @return comma-separated scenario ids; a trailing {@code *} matches prefixes */
     public Property<String> getScenarioFilter() { return scenarioFilter; }
-    /** Address exposed to the separate client. The passthrough MVP supports loopback only. */
+    /** @return address exposed to separate clients; paired passthrough currently supports loopback */
     public Property<String> getPairedHost() { return pairedHost; }
-    /** Fixed paired port, or {@code 0} to allocate a free loopback port per run. */
+    /** @return fixed paired port, or {@code 0} to allocate a free loopback port */
     public Property<Integer> getPairedPort() { return pairedPort; }
+    /** @return seconds allowed for the paired server and client JVMs to become ready */
     public Property<Integer> getPairedStartupTimeoutSeconds() { return pairedStartupTimeoutSeconds; }
+    /** @return seconds allowed for participant reports to complete */
     public Property<Integer> getPairedClientTimeoutSeconds() { return pairedClientTimeoutSeconds; }
+    /** @return number of separately launched physical clients, from 1 through 8 */
+    public Property<Integer> getPairedClientCount() { return pairedClientCount; }
+    /** @return optional scenario filter used only by the paired server */
     public Property<String> getPairedServerScenarios() { return pairedServerScenarios; }
+    /** @return optional scenario filter used by every paired client */
     public Property<String> getPairedClientScenarios() { return pairedClientScenarios; }
+    /** @return explicit non-secret project properties forwarded to every participant build */
+    public MapProperty<String, String> getPairedProjectProperties() { return pairedProjectProperties; }
 }

@@ -56,11 +56,18 @@ final class ModDevConfigurer {
         }
         run.getSourceSet().set(bench);
         run.getLoadedMods().set(java.util.Set.of(targetMod));
+        Provider<String> clientIndex = project.getProviders()
+                .gradleProperty("modBench.internal.clientIndex").orElse("0");
+        Provider<String> clientCount = project.getProviders()
+                .gradleProperty("modBench.internal.clientCount").orElse("1");
+        Provider<String> effectiveRunType = runType.equals("remote-client")
+                ? clientIndex.zip(clientCount, PairedParticipantLayout::remoteClientRunType)
+                : project.provider(() -> runType);
         run.getGameDirectory().set(project.getLayout().getBuildDirectory()
-                .dir("modBench/runs/default/" + runType));
+                .dir(effectiveRunType.map(value -> "modBench/runs/default/" + value)));
         run.getSystemProperties().put(
                 "modBench.resultDirectory", project.getLayout().getBuildDirectory()
-                    .dir("modBench/raw-results/default/" + runType)
+                    .dir(effectiveRunType.map(value -> "modBench/raw-results/default/" + value))
                     .map(directory -> directory.getAsFile().getAbsolutePath()));
         run.getSystemProperties().put("modBench.seed", extension.getSeed().map(String::valueOf));
         run.getSystemProperties().put(
@@ -85,6 +92,7 @@ final class ModDevConfigurer {
             run.getSystemProperties().put("modBench.participantMode", runType);
             run.getSystemProperties().put("modBench.paired.sessionId",
                     project.getProviders().gradleProperty("modBench.internal.sessionId").orElse("manual"));
+            run.getSystemProperties().put("modBench.paired.clientCount", clientCount);
         }
         if (server) {
             run.getSystemProperties().put("modBench.server.levelType", extension.getServerLevelType());
@@ -119,6 +127,9 @@ final class ModDevConfigurer {
         }
         if (runType.equals("remote-client")) {
             run.getSystemProperties().put("modBench.client.autoWorld", "false");
+            run.getSystemProperties().put("modBench.paired.clientIndex", clientIndex);
+            run.getProgramArguments().add("--username");
+            run.getProgramArguments().add(clientIndex.map(value -> "ModBenchClient" + Integer.parseInt(value)));
             run.getProgramArguments().add(project.getProviders().gradleProperty("modBench.internal.pairedPort")
                 .orElse(extension.getPairedPort().map(String::valueOf))
                 .map(port -> "--quickPlayMultiplayer=" + extension.getPairedHost().get() + ":" + port));

@@ -139,7 +139,11 @@ public final class ModBenchPlugin implements Plugin<Project> {
         TaskProvider<PrepareBenchClientOptionsTask> prepareBenchRemoteClientOptions = project.getTasks().register(
                 "prepareBenchRemoteClientOptions", PrepareBenchClientOptionsTask.class, task -> {
                     task.setDescription("Prepares unattended remote-client options for paired runs.");
-                    task.getGameDirectory().set(layout.getBuildDirectory().dir("modBench/runs/default/remote-client"));
+                    var index = project.getProviders().gradleProperty("modBench.internal.clientIndex").orElse("0");
+                    var count = project.getProviders().gradleProperty("modBench.internal.clientCount").orElse("1");
+                    task.getGameDirectory().set(layout.getBuildDirectory().dir(index.zip(count,
+                            (clientIndex, clientCount) -> "modBench/runs/default/"
+                                    + PairedParticipantLayout.remoteClientRunType(clientIndex, clientCount))));
                 });
         project.getTasks().matching(task -> task.getName().equals("runBenchServer"))
                 .configureEach(run -> run.dependsOn(prepareServerWorld));
@@ -155,15 +159,18 @@ public final class ModBenchPlugin implements Plugin<Project> {
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.setDescription("Runs a dedicated server and separate client as a paired passthrough benchmark.");
             task.getProjectDirectory().set(project.getLayout().getProjectDirectory());
+            task.getBuildDirectory().set(project.getLayout().getBuildDirectory());
             task.getOutputDirectory().set(layout.getBuildDirectory().dir("modBench/paired/default"));
             task.getHost().set(extension.getPairedHost());
             task.getConfiguredPort().set(extension.getPairedPort());
             task.getStartupTimeoutSeconds().set(extension.getPairedStartupTimeoutSeconds());
             task.getClientTimeoutSeconds().set(extension.getPairedClientTimeoutSeconds());
+            task.getClientCount().set(extension.getPairedClientCount());
             task.getScenarioFilter().set(project.getProviders().gradleProperty("modBench.scenarios")
                     .orElse(extension.getScenarioFilter()));
             task.getServerScenarioFilter().set(extension.getPairedServerScenarios());
             task.getClientScenarioFilter().set(extension.getPairedClientScenarios());
+            task.getParticipantProjectProperties().set(extension.getPairedProjectProperties());
         });
     }
 

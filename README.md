@@ -24,9 +24,9 @@ ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它
 
 尚待完成的客户端能力包括 tooltip 与完整视觉树、感知级截图比对、目标投影门禁和更多真实 Mod 验证。
 
-下一条客户端纵切是 `dedicated server + separate client` paired 模式，用于覆盖 integrated world 无法重现的登录、服务端权威同步、真实 socket 与断连问题。该模式将支持可复现网络 profile：默认无管理员跨平台 TCP proxy 提供方向性延迟、抖动、带宽、转发卡顿和连接中止；真正 packet loss/reorder/duplicate 仅由明确标记的 IP-packet backend 提供。TCP proxy 不会用“随机丢字节”伪装丢包。
+`dedicated server + separate client` paired passthrough 已有可执行纵切：`runBenchPaired` 分配 loopback 端口、启动专服、等待 1–8 个隔离 physical client 就绪、验收各 participant report，并在结束或失败时回收进程树。每个客户端拥有独立用户名、game/result 目录；场景内预期断线可自动重连。该模式下一步接入可复现 network profile：默认无管理员跨平台 TCP proxy 提供方向性延迟、抖动、带宽、转发卡顿和连接中止；真正 packet loss/reorder/duplicate 仅由明确标记的 IP-packet backend 提供。TCP proxy 不会用“随机丢字节”伪装丢包。
 
-其他待完成项包括：更严格的 phase/metric/artifact Schema 约束、GameTest 与 JUnit XML、多 suite DSL、paired 双 JVM 编排、A/B 回归，以及真实 SuperLead 业务场景验收。Plugin 报告任务现会解析 JSON、执行正式 Draft 2020-12 Schema 验证，再检查场景、指标、artifact、diagnostic 与 loaded Mod 期望。
+其他待完成项包括：更严格的 phase/metric/artifact Schema 约束、GameTest 与 JUnit XML、多 suite DSL、paired session payload 握手与网络 backend 接线、A/B 回归，以及真实 SuperLead 业务场景验收。Plugin 报告任务现会解析 JSON、执行正式 Draft 2020-12 Schema 验证，再检查场景、指标、artifact、diagnostic 与 loaded Mod 期望。
 
 逐阶段完成度、Server MVP 验收矩阵与下一里程碑见 [`docs/implementation_status.md`](docs/implementation_status.md)。
 

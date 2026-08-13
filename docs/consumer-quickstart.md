@@ -129,9 +129,28 @@ ServiceLoader descriptor 放在
 ./gradlew check                   # 含生产 JAR / sources JAR 无 bench 内容检查
 ```
 
-### 规划中的双端专服与网络模式
+### 双端专服 passthrough 与规划中的网络模式
 
-`runBenchClient` 仍是 integrated client。只在 separate client 连接 dedicated server 时出现的登录、同步、ping、卡顿和断连问题，将由独立 paired 模式覆盖；不要通过同时手工启动现有两个任务来近似。
+`runBenchClient` 仍是 integrated client。需要真实 separate client 连接 dedicated server 时，使用协调任务：
+
+```bash
+./gradlew runBenchPaired
+```
+
+它会分配 loopback 端口、先启动专服，再依次启动并隔离 1–8 个 physical client，等待 participant reports，最后写入 `build/modBench/paired/default/summary.json` 并回收进程树。可选 DSL：
+
+```kotlin
+modBench {
+    pairedClientCount = 2
+    pairedStartupTimeoutSeconds = 180
+    pairedClientTimeoutSeconds = 900
+    pairedServerScenarios = "mymod.server-*"
+    pairedClientScenarios = "mymod.client-*"
+    pairedProjectProperties.put("example.fixture", "paired")
+}
+```
+
+`pairedProjectProperties` 只适合显式、非敏感且可记录的 Gradle 属性；`modBench.internal.*` 保留给协调器。当前 passthrough 已覆盖多客户端目录/用户名隔离、联合退出与场景内物理断线重连；session payload 握手、网络 backend 接线和双 JVM Minecraft CI 仍在后续里程碑中。
 
 paired network profile 会区分三层语义：
 

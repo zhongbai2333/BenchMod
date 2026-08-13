@@ -32,6 +32,8 @@ final class ClientEnvironmentGuard implements BenchClientEnvironment {
     private long ticksBeforeArmed;
     private Class<? extends Screen> expectedScreen;
     private long guiExpectationGeneration;
+    private boolean expectedReconnect;
+    private int expectedReconnectCount;
 
     ClientEnvironmentGuard(Minecraft minecraft, boolean requireWindowFocus, double stableFrameRatio) {
         this.minecraft = Objects.requireNonNull(minecraft, "minecraft");
@@ -45,7 +47,8 @@ final class ClientEnvironmentGuard implements BenchClientEnvironment {
 
     /** Samples the environment once per client tick. */
     void sample() {
-        boolean expectedScreenOpen = minecraft.screen != null && isExpectedScreen(minecraft.screen);
+        boolean expectedScreenOpen = minecraft.screen != null
+                && (isExpectedScreen(minecraft.screen) || expectedReconnect);
         readiness = readinessGate.evaluate(minecraft, expectedScreenOpen);
         Window window = minecraft.getWindow();
         if (!armed) {
@@ -56,7 +59,11 @@ final class ClientEnvironmentGuard implements BenchClientEnvironment {
             baselineHeight = window.getHeight();
             return;
         }
-        checkScreenExpectation();
+        if (expectedReconnect && minecraft.level != null && minecraft.player != null
+                && minecraft.screen == null && readiness.ready()) {
+            expectedReconnect = false;
+        }
+        if (!expectedReconnect) checkScreenExpectation();
         if (window.getWidth() != baselineWidth || window.getHeight() != baselineHeight) {
             invalidate("client.window.resized=" + baselineWidth + "x" + baselineHeight
                     + "->" + window.getWidth() + "x" + window.getHeight());
@@ -92,6 +99,16 @@ final class ClientEnvironmentGuard implements BenchClientEnvironment {
     void clearExpectedScreen() {
         expectedScreen = null;
         guiExpectationGeneration++;
+    }
+
+    /** Allows the loading/connect screens caused by one benchmark-requested physical reconnect. */
+    void beginExpectedReconnect() {
+        if (!expectedReconnect) expectedReconnectCount++;
+        expectedReconnect = true;
+    }
+
+    int expectedReconnectCount() {
+        return expectedReconnectCount;
     }
 
     private boolean isExpectedScreen(Screen screen) {
