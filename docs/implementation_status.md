@@ -101,7 +101,7 @@
 - 自动创建默认 `bench` source set 和 ModDev `benchServer` run。
 - 通过公开 ModDev DSL 绑定 target Mod transformed source folders。
 - `benchRuntimeMod` 仅进入 bench runtime classpath，不进入普通 `runtimeClasspath`。
-- 五个公共模块（core/neoforge API、Runtime、Gradle plugin、report schema）具备 sources/javadoc JAR、完整 POM 和 JitPack 坐标；`0.1.1` 已由 JitPack 成功发布。`verifyReleaseReadiness` 验证 tests 与 Maven Local publication，CI 另行验证 Wrapper，并在隔离 Gradle 用户目录中把独立示例作为 JitPack 外部消费方编译；本地源码开发通过显式 `-PmodBenchLocal=true` 切换。
+- 五个公共模块（core/neoforge API、Runtime、Gradle plugin、report schema）具备 sources/javadoc JAR、完整 POM 和 JitPack 坐标；`0.1.3-beta` 已由 JitPack 成功发布。`verifyReleaseReadiness` 验证 tests 与 Maven Local publication，CI 另行验证 Wrapper，并在隔离 Gradle 用户目录中把独立示例作为 JitPack 外部消费方编译；本地源码开发通过显式 `-PmodBenchLocal=true` 切换。
 - 插件按自身版本自动注入 `benchImplementation`（core + neoforge API）与 `benchRuntimeMod`（Runtime，非传递）；`modBench.automaticDependencies = false` 可退出；消费方零依赖声明即可接入。
 - `verifyProductionJarHasNoBenchContent` 同时校验 sources JAR（对照 bench 源码目录），发布物隔离纳入 `check`。
 - 外部接入步骤文档：`docs/consumer-quickstart.md`。
@@ -136,7 +136,7 @@
 1. Plugin 仍是单一默认 suite，不是计划中的 `NamedDomainObjectContainer<BenchSuiteSpec>` 多 suite DSL；client 结果目录在 Plugin 与 ModDevConfigurer 中重复推导。
 2. 单 tick 内的真死锁（场景阻塞 server thread）只能靠 Minecraft watchdog，Runtime 的 timeout dump 覆盖的是跨 tick 挂起。
 3. `report.md` 是唯一派生视图，JUnit XML 未实现；截图比对仅为像素级（无感知哈希/SSIM）。
-4. JitPack `0.1.1` 已发布，五个公共模块、Gradle Plugin marker、POM/JAR/Module Metadata 均可解析；CI 已加入隔离的外部消费方编译。普通 ModDev run 的完整隔离矩阵仍待加强。
+4. JitPack `0.1.3-beta` 已发布，五个公共模块、Gradle Plugin marker、POM/JAR/Module Metadata 均可解析；CI 已加入隔离的外部消费方编译。普通 ModDev run 的完整隔离矩阵仍待加强。
 5. TestKit 已覆盖 Groovy DSL、多 Mod、应用顺序、Unicode 路径、首个白名单 `-PmodBench.scenarios` 转发与 classpath 隔离；仍缺多 suite、多项目逐子项目应用、更多白名单属性与 ModDev 1.x 友好失败。
 6. JFR 已实现，GameTest 尚未实现；单 tick 内阻塞和 GameTest bridge 仍是下一阶段可靠性重点。
 

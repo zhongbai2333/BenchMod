@@ -76,7 +76,7 @@ Plugin 自动注册整套验证与收集任务：`verifyProductionJarHasNoBenchC
 
 每个场景的原始指标样本导出为 `artifacts/samples/<scenario>.jsonl`（每 metric×phase 一行），`summary.json` 旁另生成人类可读的 `report.md` 派生视图。`environment.git` 经 configuration-cache 安全的 git 探测记录本地 commit 与 dirty 状态。帧稳定判据与截图门禁预算可经 `clientStableFrameRatio` / `clientCaptureGateFrameBudget` 配置，全部实验参数都在 `run.parameters` 里。
 
-正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。仓库内独立示例默认使用已发布的 `0.1.1`，并由 CI 在隔离 Gradle 用户目录中验证远程解析；开发当前源码时可显式传入 `-PmodBenchLocal=true` 切换 Maven Local。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，示例说明见 [examples/simple-neoforge-mod/README.md](examples/simple-neoforge-mod/README.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
+正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。仓库内独立示例默认使用已发布的 `0.1.3-beta`，并由 CI 在隔离 Gradle 用户目录中验证远程解析；开发当前源码时可显式传入 `-PmodBenchLocal=true` 切换 Maven Local。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，示例说明见 [examples/simple-neoforge-mod/README.md](examples/simple-neoforge-mod/README.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
 
 ### Client MVP
 

@@ -6,7 +6,7 @@
 
 - Mod 在 **Minecraft 26.1.2 / NeoForge 26.1.2.76** 开发线上（当前唯一验证线）。
 - Java 25 工具链、Gradle 9.x、ModDevGradle 2.x。
-- 一个已发布的不可变 JitPack tag，例如 `0.1.1`。
+- 一个已发布的不可变 JitPack tag，例如 `0.1.3-beta`。
 
 开发 ModBench 本身时可以改用本地快照：
 
@@ -60,7 +60,7 @@ dependencyResolutionManagement {
 `gradle.properties` 里加：
 
 ```properties
-modbench_version=0.1.1
+modbench_version=0.1.3-beta
 moddev_version=2.0.141
 ```
 
