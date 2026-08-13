@@ -317,12 +317,16 @@ public abstract class PairedBenchTask extends DefaultTask {
     private static void destroyTree(Process process) {
         if (process == null) return;
         List<ProcessHandle> handles = process.toHandle().descendants()
-                .sorted(Comparator.comparingLong(ProcessHandle::pid).reversed()).toList();
-        handles.forEach(ProcessHandle::destroy);
+                .sorted(Comparator.<ProcessHandle>comparingLong(handle -> handle.pid()).reversed()).toList();
+        for (ProcessHandle handle : handles) {
+            handle.destroy();
+        }
         process.destroy();
         try {
             if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                handles.forEach(ProcessHandle::destroyForcibly);
+                for (ProcessHandle handle : handles) {
+                    handle.destroyForcibly();
+                }
                 process.destroyForcibly();
             }
         } catch (InterruptedException exception) {
