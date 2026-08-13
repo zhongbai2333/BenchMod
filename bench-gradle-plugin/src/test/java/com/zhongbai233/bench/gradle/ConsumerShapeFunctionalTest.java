@@ -57,6 +57,29 @@ class ConsumerShapeFunctionalTest {
     }
 
     @Test
+    void pairedClientsPrepareIndependentGameDirectories() throws Exception {
+        writeModDevProject("""
+                plugins {
+                    java
+                    id("net.neoforged.moddev")
+                    id("com.zhongbai233.minecraft-bench")
+                }
+                """);
+
+        run("prepareBenchRemoteClientOptions", "-PmodBench.internal.clientCount=2",
+                "-PmodBench.internal.clientIndex=0");
+        run("prepareBenchRemoteClientOptions", "-PmodBench.internal.clientCount=2",
+                "-PmodBench.internal.clientIndex=1");
+
+        assertTrue(Files.isRegularFile(projectDirectory.resolve(
+                "build/modBench/runs/default/remote-client-0/options.txt")));
+        assertTrue(Files.isRegularFile(projectDirectory.resolve(
+                "build/modBench/runs/default/remote-client-1/options.txt")));
+        assertFalse(Files.exists(projectDirectory.resolve(
+                "build/modBench/runs/default/remote-client/options.txt")));
+    }
+
+    @Test
     void multiModProjectRequiresAnExplicitTargetMod() throws Exception {
         writeModDevProject("""
                 plugins {

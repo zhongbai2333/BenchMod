@@ -1,7 +1,9 @@
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
 
 plugins {
     base
@@ -71,6 +73,13 @@ subprojects {
     // release content, so keep test discovery and publications deterministic if one appears.
     tasks.withType<Test>().configureEach { exclude("**/* *.class") }
     tasks.withType<Jar>().configureEach { exclude("**/* *.class") }
+    tasks.withType<Javadoc>().configureEach {
+        // Keep structural doclint (HTML, references, accessibility) enabled while the
+        // legacy missing-comment backlog is documented incrementally. This avoids
+        // hiding malformed Javadoc with the overly broad Xdoclint:none switch.
+        (options as StandardJavadocDocletOptions)
+            .addStringOption("Xdoclint:all,-missing", "-quiet")
+    }
 }
 
 val publishedModules = listOf(

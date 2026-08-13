@@ -25,7 +25,7 @@
 
 版本也分为两条用途不同的线：
 
-- 根目录 `gradle.properties` 的 `modBenchVersion` 是当前源码/下一次 tag 的版本；
+- 根目录 `gradle.properties` 的 `modBenchVersion` 是当前源码/下一次候选 tag 的版本（例如 `0.1.3-beta`）；
 - `examples/simple-neoforge-mod/gradle.properties` 的 `modbench_version` 是最后一个已在 JitPack 验证可用的版本。
 
 准备新版本时先调整并验证根版本；JitPack 构建成功后，再更新示例消费版本。不要为了保持两个文件表面一致而提前让示例依赖尚不存在的 tag。

@@ -28,7 +28,7 @@ VERSION=0.1.2 \
 
 根项目和示例项目的版本属性用途不同：
 
-- 根目录 `gradle.properties` 的 `modBenchVersion` 表示当前源码和计划创建的 tag；
+- 根目录 `gradle.properties` 的 `modBenchVersion` 表示当前源码和计划创建的 tag；稳定前可使用明确的预发布后缀，例如 `0.1.3-beta`，不要使用会随时间变化的 `SNAPSHOT` 作为发布候选；
 - `examples/simple-neoforge-mod/gradle.properties` 的 `modbench_version` 固定最后一个已经确认可用的 JitPack tag。
 
 因此发布候选阶段不要求二者相等。示例必须继续验证旧的稳定版本，直到新 tag 的 JitPack 产物实际可用。

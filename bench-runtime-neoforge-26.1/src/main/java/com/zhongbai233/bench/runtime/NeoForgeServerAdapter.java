@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory;
 
 final class NeoForgeServerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(NeoForgeServerAdapter.class);
+    private static final int PAIRED_CLIENT_STABLE_TICKS = 20;
     private ServerBenchEngine engine;
     private long tickStartedNanos;
     private RuntimeConfiguration configuration;
     private boolean pairedRunStarted;
     private boolean pairedRunFinished;
+    private int pairedClientStableTicks;
 
     @SubscribeEvent
     public void serverStarted(ServerStartedEvent event) {
@@ -28,8 +30,8 @@ final class NeoForgeServerAdapter {
                 if (!configuration.pairedServer()) {
                     engine = ServerBenchEngine.start(event.getServer(), configuration);
                 } else {
-                    LOGGER.info("MODBENCH event=paired_server_ready session={} waiting_for=remote_player",
-                            configuration.pairedSessionId());
+                    LOGGER.info("MODBENCH event=paired_server_ready session={} waiting_for_remote_players={}",
+                            configuration.pairedSessionId(), configuration.pairedClientCount());
                 }
         } catch (Exception exception) {
             LOGGER.error("MODBENCH event=run_failed phase=discover", exception);
@@ -51,17 +53,25 @@ final class NeoForgeServerAdapter {
             return;
         }
         if (engine == null && !pairedRunStarted && !pairedRunFinished
-            && configuration != null && configuration.pairedServer()
-                && event.getServer().getPlayerList().getPlayerCount() > 0) {
-            try {
-            pairedRunStarted = true;
-                LOGGER.info("MODBENCH event=paired_server_client_joined session={} players={}",
-                        configuration.pairedSessionId(), event.getServer().getPlayerList().getPlayerCount());
-                engine = ServerBenchEngine.start(event.getServer(), configuration);
-            } catch (Exception exception) {
-                LOGGER.error("MODBENCH event=run_failed phase=paired_start", exception);
-                event.getServer().halt(false);
-                return;
+                && configuration != null && configuration.pairedServer()) {
+            int playerCount = event.getServer().getPlayerList().getPlayerCount();
+            boolean clientsReady = playerCount == configuration.pairedClientCount()
+                    && event.getServer().getPlayerList().getPlayers().stream()
+                            .allMatch(player -> !player.isRemoved() && player.isAlive());
+            pairedClientStableTicks = clientsReady ? pairedClientStableTicks + 1 : 0;
+            if (pairedClientStableTicks >= PAIRED_CLIENT_STABLE_TICKS) {
+                try {
+                    pairedRunStarted = true;
+                    LOGGER.info(
+                            "MODBENCH event=paired_server_clients_ready session={} players={} expected={} stable_ticks={}",
+                            configuration.pairedSessionId(), playerCount, configuration.pairedClientCount(),
+                            pairedClientStableTicks);
+                    engine = ServerBenchEngine.start(event.getServer(), configuration);
+                } catch (Exception exception) {
+                    LOGGER.error("MODBENCH event=run_failed phase=paired_start", exception);
+                    event.getServer().halt(false);
+                    return;
+                }
             }
         }
         if (engine == null) return;

@@ -72,7 +72,7 @@ public final class ClientBenchEngine implements BenchClientScheduler, BenchCance
         this.configuration = configuration;
         this.registrations = registrations;
         report = new BenchReportWriter(configuration.resultDirectory(), configuration.targetMod(),
-            configuration.seed(), configuration.remoteClient() ? "remote-client" : "client",
+            configuration.seed(), configuration.remoteClient() ? configuration.participantRunType() : "client",
             configuration.remoteClient() ? "REMOTE_CLIENT" : "INTEGRATED_CLIENT");
         environment = new ClientEnvironmentGuard(minecraft, configuration.clientRequireWindowFocus(),
                 configuration.clientStableFrameRatio());
@@ -147,6 +147,8 @@ public final class ClientBenchEngine implements BenchClientScheduler, BenchCance
         report.addRunParameter("participantMode", configuration.participantMode());
         if (!configuration.pairedSessionId().isBlank()) {
             report.addRunParameter("pairedSessionId", configuration.pairedSessionId());
+            report.addRunParameter("pairedClientIndex", String.valueOf(configuration.pairedClientIndex()));
+            report.addRunParameter("pairedClientCount", String.valueOf(configuration.pairedClientCount()));
         }
         if (minecraft.level != null) {
             report.addDiagnostic("client.world.dimension=" + minecraft.level.dimension().identifier());
@@ -198,6 +200,10 @@ public final class ClientBenchEngine implements BenchClientScheduler, BenchCance
     public boolean hasPendingScreenshots() { return automation.hasPendingScreenshots(); }
     public boolean isComplete() { return complete; }
     public BenchStatus status() { return status; }
+
+    void beginExpectedReconnect() {
+        environment.beginExpectedReconnect();
+    }
 
     public void recordGraphicsSnapshot(String stage, ClientGraphicsController.Snapshot snapshot) {
         report.addDiagnostic("client.graphics." + stage + ".window=" + snapshot.width() + "x" + snapshot.height());
@@ -379,6 +385,7 @@ public final class ClientBenchEngine implements BenchClientScheduler, BenchCance
         report.addDiagnostic("client.environment.require_window_focus=" + environment.requiresWindowFocus());
         report.addDiagnostic("client.environment.render_ready_reached=" + environment.isArmed());
         report.addDiagnostic("client.environment.ticks_before_render_ready=" + environment.ticksBeforeArmed());
+        report.addDiagnostic("client.environment.expected_reconnects=" + environment.expectedReconnectCount());
         report.addDiagnostic("client.environment.valid=" + environment.isValid());
         environment.invalidations().forEach(reason -> report.addDiagnostic("client.environment.invalidation=" + reason));
         report.addDiagnostic("client.readiness.ready=" + readiness.ready());

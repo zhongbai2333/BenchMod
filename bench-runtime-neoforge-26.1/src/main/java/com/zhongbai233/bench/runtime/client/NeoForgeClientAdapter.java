@@ -22,6 +22,8 @@ public final class NeoForgeClientAdapter {
     private static final ClientWorldController WORLD = new ClientWorldController();
     private static final ClientGraphicsController GRAPHICS = new ClientGraphicsController();
     private static final ClientDimensionController DIMENSION = new ClientDimensionController();
+    private static final PairedClientReconnectController RECONNECT = new PairedClientReconnectController();
+    private static long reconnectTicks;
 
     private NeoForgeClientAdapter() {}
 
@@ -77,8 +79,21 @@ public final class NeoForgeClientAdapter {
         }
         if (engine == null) return;
         if (minecraft.level == null || minecraft.player == null) {
+            if (configuration.remoteClient()) {
+                if (reconnectTicks == 0L) engine.beginExpectedReconnect();
+                reconnectTicks++;
+                RECONNECT.requestIfNeeded(minecraft, Math.toIntExact(Math.min(Integer.MAX_VALUE, reconnectTicks)));
+                if (reconnectTicks >= configuration.phaseTimeoutTicks()) {
+                    engine.abort("Paired client reconnect exceeded " + reconnectTicks + " ticks");
+                }
+                return;
+            }
             engine.abort("Client world or player became unavailable");
         } else {
+            if (configuration.remoteClient()) {
+                RECONNECT.observeConnected(minecraft);
+                reconnectTicks = 0L;
+            }
             engine.tick();
         }
         if (engine.isComplete()) {
