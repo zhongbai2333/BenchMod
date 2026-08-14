@@ -4,6 +4,10 @@ build/
 .idea/
 *.iml
 .vscode/
+.eclipse/
+.classpath
+.project
+.settings/
 .DS_Store
 run/
 logs/
