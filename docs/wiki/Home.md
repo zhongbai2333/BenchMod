@@ -26,9 +26,9 @@ For a first integration, verify the standalone dedicated-server example, add you
 - 客户端 frame interval 是帧间隔，不是 GPU 执行时间
 - `INCONCLUSIVE`、`BLOCKED`、`SKIP` 不能按成功处理
 - 分支存在、源码版本号或 Maven Local 可用，不等于已经发布了可用的 JitPack tag
-- 1.21.1 正在单独移植；完成验收前不列为可用版本
+- 1.21.1 为服务端已验收的 beta；客户端图形 E2E 仍未验证
 
-Passing builds and headless CI do not establish client/GPU correctness or benchmark performance. Frame intervals are not GPU timings. Inconclusive, blocked, or skipped evidence is not a pass. A source version or branch does not prove that a release artifact is available. The separate 1.21.1 backport remains in progress until verified.
+Passing builds and headless CI do not establish client/GPU correctness or benchmark performance. Frame intervals are not GPU timings. Inconclusive, blocked, or skipped evidence is not a pass. A source version or branch does not prove that a release artifact is available. The 1.21.1 backport is a server-validated beta; graphical client E2E remains unverified.
 
 本 Wiki 的可评审源文件位于仓库 `docs/wiki/`。代码、版本对应的构建配置与可复现结果优先于历史设计文档；[ADR](https://github.com/zhongbai2333/BenchMod/tree/main/docs/adr) 解释边界，[实施计划](https://github.com/zhongbai2333/BenchMod/blob/main/docs/mod_bench_implementation_plan.md) 描述长期方向。
 

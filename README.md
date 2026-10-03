@@ -5,6 +5,7 @@
 面向 NeoForge Mod 开发者的可复现游戏内基准测试工具链。把真实业务负载写在独立的 `src/bench` 中，由 BenchMod 启动游戏、执行场景、采集指标、保存证据并验收结果。
 
 > 当前分支：`26.2` · Minecraft **26.2** · NeoForge **26.2.0.88** · Java **25**
+>
 > 这是未发布的 26.2 开发分支；请先本地发布，不要假定源码版本对应的 JitPack tag 已可用。
 
 ## 能做什么
@@ -24,7 +25,7 @@
 | [main](https://github.com/zhongbai2333/BenchMod/tree/main) | 26.1.2 | 26.1.2.76 | 25 | 基线 / baseline |
 | [26.2](https://github.com/zhongbai2333/BenchMod/tree/26.2) | 26.2 | 26.2.0.88 | 25 | 版本适配 + 图形探针 / port + graphics suite |
 | [26.3](https://github.com/zhongbai2333/BenchMod/tree/26.3) | 26.3 | 26.3.0.45-beta | 25 | 版本适配 + 图形探针 / port + graphics suite |
-| 1.21.1 | 1.21.1 | 21.1.252 | 21 | 移植中，尚未验收 / port in progress, not validated |
+| [1.21.1](https://github.com/zhongbai2333/BenchMod/tree/1.21.1) | 1.21.1 | 21.1.252 | 21 | 服务端已验收 beta；客户端待图形实测 / server-validated beta; graphical client unverified |
 
 分支版本不能混用。`bench-api-neoforge-<line>` 后缀表示适配线；`modBenchVersion` 表示工具自身源码版本，不等于已经发布的 tag。完整模块映射见 [版本与架构](docs/wiki/Versions-and-Architecture.md)。
 
