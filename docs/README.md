@@ -1,36 +1,39 @@
-# ModBench 文档导航
+# BenchMod 文档 / Documentation
 
-这里集中说明每份文档的用途。阅读和维护时，以“当前事实”文档为准；设计计划用于解释方向，不能替代已经验证的实现状态。
+[简体中文 README](../README.md) · [English README](../README.en.md) · [GitHub Wiki](https://github.com/zhongbai2333/BenchMod/wiki)
 
-## 从哪里开始
+## 使用指南 / User guides
 
-| 需求 | 文档 | 说明 |
-| --- | --- | --- |
-| 了解当前完成度与已知限制 | [implementation_status.md](implementation_status.md) | 当前实现的事实来源，功能变化后同步更新。 |
-| 在外部 NeoForge Mod 中接入 | [consumer-quickstart.md](consumer-quickstart.md) | JitPack、Gradle Plugin、Provider 与运行命令。 |
-| 验证最小消费方 | [示例项目](../examples/simple-neoforge-mod/README.md) | 默认验证最新已确认的 JitPack 版本，也支持显式切换 Maven Local。 |
-| 准备和验证新版本 | [releasing.md](releasing.md) | 发布前检查、tag、JitPack 和发布后验收。 |
-| 理解架构约束 | [adr/README.md](adr/README.md) | 已接受的架构决策及其背景。 |
-| 查看长期设计与阶段路线 | [mod_bench_implementation_plan.md](mod_bench_implementation_plan.md) | 设计基线和路线，不表示其中所有内容已经实现。 |
-| 评估 SuperLead 试点接入 | [superlead-adoption-readiness.md](superlead-adoption-readiness.md) | 特定消费方的门禁、边界和建议顺序。 |
+中英双语指南的版本化源文件在 [wiki/Home.md](wiki/Home.md)，并同步至原生 GitHub Wiki。
+The versioned bilingual guides below are mirrored to the native GitHub Wiki.
 
-## 信息优先级
+| Guide | 内容 / Contents |
+| --- | --- |
+| [Versions and architecture](wiki/Versions-and-Architecture.md) | 分支、工具链、API / Runtime / Provider 边界 |
+| [Getting started](wiki/Getting-Started.md) | 构建、独立示例、JitPack、本地消费 |
+| [Writing scenarios](wiki/Writing-Scenarios.md) | Provider、生命周期、指标、验收 |
+| [Client automation](wiki/Client-Automation.md) | 世界、相机、截图、GUI、paired 模式 |
+| [Reports and comparison](wiki/Reports-and-Comparison.md) | JSON、JSONL、JFR、artifact、比较边界 |
+| [Graphics migration](wiki/Graphics-Migration.md) | 26.2 / 26.3 可选 GPU 探针和双后端流程 |
+| [Contributing and troubleshooting](wiki/Contributing-and-Troubleshooting.md) | 贡献、排错、验证与发布 |
 
-文档发生冲突时按以下顺序判断：
+## 深入参考 / Reference
 
-1. 可重复的构建、测试和外部消费验证结果；
-2. `implementation_status.md` 记录的当前状态；
-3. 已接受的 ADR；
-4. 实施计划与特定项目接入建议。
+以下原有文档保留设计背景与详细记录。开发线和当前能力以对应分支源码、配置及可复现验收为准；历史阶段描述不能替代新版本证据。
+These documents preserve design context and detailed records. Prefer the matching branch's code, configuration and reproducible validation over historical stage descriptions.
 
-版本也分为两条用途不同的线：
+- [26.1 consumer setup](consumer-quickstart.md) and [standalone example](../examples/simple-neoforge-mod/README.md)
+- [Implementation status](implementation_status.md)
+- [Architecture decision records](adr/README.md)
+- [Long-term implementation plan](mod_bench_implementation_plan.md)
+- [Release process](releasing.md)
+- [SuperLead adoption readiness](superlead-adoption-readiness.md)
 
-- 根目录 `gradle.properties` 的 `modBenchVersion` 是当前源码/下一次候选 tag 的版本（例如 `0.1.3-beta`）；
-- `examples/simple-neoforge-mod/gradle.properties` 的 `modbench_version` 是最后一个已在 JitPack 验证可用的版本。
+根 `modBenchVersion` 与示例的 `modbench_version` 不要求相等：前者标识源码/本地发布，后者固定消费方依赖。不要提前把示例指向尚未验证可用的远程 tag。
+The root source/local-publication version and a consumer's pinned dependency version need not match. Do not point consumers at an unverified remote tag.
 
-准备新版本时先调整并验证根版本；JitPack 构建成功后，再更新示例消费版本。不要为了保持两个文件表面一致而提前让示例依赖尚不存在的 tag。
+## 当前分支参考 / This branch
 
-## Minecraft 26.3 分支
-
-- [26.3 移植、后端选择与验证](port-26.3.md)
-- [独立 26.3 消费方](../examples/simple-neoforge-mod-26.3/README.md)
+- [Minecraft 26.3 port](port-26.3.md)
+- [26.3 standalone consumer](../examples/simple-neoforge-mod-26.3/README.md)
+- [Graphics migration detail](graphics-migration-assistant-26.3.md)
