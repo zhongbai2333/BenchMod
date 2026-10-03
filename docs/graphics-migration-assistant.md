@@ -40,7 +40,7 @@ PowerShell 使用 Copy-Item -Recurse 保存目录。机器不具备 Vulkan 时�
 GraphicsMigrationSuite.register(registrar);
 ```
 
-入口类位于对应版本 API 的 `com.zhongbai233.bench.api.neoforge.graphics`。入口通过 registrar 的游戏 classloader 加载 Runtime 内唯一的 Factory SPI；所有具体 GPU/Minecraft 执行都保留在 Runtime MOD 中，防止 FML 将受保护的游戏类错误加载到普通库 classloader。只从 client Provider
+入口类位于对应版本 API 的 `com.zhongbai233.bench.api.neoforge.graphics`。入口通过 registrar 的游戏 classloader 加载 Runtime 内唯一的 Factory SPI；所有具体 GPU/Minecraft 执行都保留在 Runtime MOD 中，防止 FML 将受保护的游戏类错误加载到普通库 classloader。版本 API JAR 同时声明 GAMELIBRARY，确保既有 Minecraft 类型接口也在游戏 loader 解析；Core 仍是普通 Java 库。只从 client Provider
 加载；不要在生产代码、专服入口或静态 mod 初始化里访问它。独立示例默认 seed=602263；
 接入已有 Provider 时使用其 context.seed，同一对照的 seed 必须一致。可用 Core 中的
 `GraphicsMigrationFixtures`、`GraphicsMigrationOracle` 复用源行整理和逐像素参考断言，

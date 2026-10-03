@@ -24,6 +24,11 @@ tasks.withType<JavaCompile>().configureEach {
 
 tasks.test { useJUnitPlatform() }
 
+// Minecraft-bound API signatures must resolve in FML's transformed game loader, not the app loader.
+// Core API remains a platform-neutral ordinary Java library.
+tasks.jar { manifest.attributes("FMLModType" to "GAMELIBRARY") }
+
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") { from(components["java"]) }

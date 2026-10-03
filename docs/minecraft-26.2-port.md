@@ -63,6 +63,8 @@ Validation after implementation:
 - Original independent simple consumer still compiles and passes isolation; its real dedicated-server run and report verification pass after the new Runtime publication
 - `git diff --check` passes
 
+The version-specific API JAR is marked `FMLModType=GAMELIBRARY` so its Minecraft-bound interface signatures resolve in the same game loader; the platform-neutral Core remains an ordinary Java library. Real concrete test contexts assert this loader identity without API-loader proxies or diagnostic protected-class loading.
+
 All Minecraft/GPU execution lives in the Runtime MOD's transformed classloader. The API provides only a pure-Java registration façade and its narrow Factory SPI, avoiding protected game-class loading from ordinary API libraries.
 
 Still not run: graphical OpenGL/Vulkan clients, real pixel readbacks, GPU timing, or paired clients. No display, X11 socket, Xvfb, `/dev/dri`, or Vulkan ICD is present in this worker. Full engine resource reload is deliberately SKIP; close/recreate ownership checks are not a driver-global leak test.

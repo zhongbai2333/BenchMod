@@ -7,7 +7,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.zhongbai233.bench.api.neoforge.client.*;
 import com.zhongbai233.bench.api.neoforge.graphics.GraphicsMigrationSuite;
 import com.zhongbai233.bench.api.neoforge.server.BenchArtifactWriter;
-import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,6 +19,9 @@ import org.junit.jupiter.api.Test;
 class GraphicsMigrationUnavailableDeviceTest {
     @Test
     void missingGpuBlocksEveryRequiredSceneAndStillWritesReport() throws Exception {
+        assertSame(RenderSystem.class.getClassLoader(), BenchClientContext.class.getClassLoader(),
+                "Minecraft-bound API signatures must live in the game loader");
+        assertSame(RenderSystem.class.getClassLoader(), GraphicsMigrationSuite.class.getClassLoader());
         assertNull(RenderSystem.tryGetDevice(), "This bootstrap-only test must not initialize a renderer");
         List<String> invalidations = new ArrayList<>();
         Map<String, String> artifacts = new LinkedHashMap<>();
@@ -39,23 +41,10 @@ class GraphicsMigrationUnavailableDeviceTest {
             }
             public void register(Path path, String type) { fail("Unexpected artifact " + path); }
         };
-        BenchClientContext context = (BenchClientContext) Proxy.newProxyInstance(BenchClientContext.class.getClassLoader(),
-                new Class<?>[]{BenchClientContext.class}, (proxy, method, args) -> switch (method.getName()) {
-                    case "environment" -> environment;
-                    case "artifacts" -> writer;
-                    case "seed" -> 602263L;
-                    default -> throw new UnsupportedOperationException(method.getName());
-                });
+        BenchClientContext context = new GraphicsMigrationTestContext(environment, writer);
         AtomicReference<BenchClientScenarioFactory> factory = new AtomicReference<>();
         GraphicsMigrationSuite.register((descriptor, scenarioFactory) -> factory.set(scenarioFactory));
         BenchClientScenario scenario = factory.get().create(context);
-        System.out.println("API loader=" + GraphicsMigrationSuite.class.getClassLoader());
-        System.out.println("TEST loader=" + getClass().getClassLoader());
-        for (ClassLoader loader : new ClassLoader[]{GraphicsMigrationSuite.class.getClassLoader(), getClass().getClassLoader()}) {
-            Class<?> constants = loader.loadClass("net.minecraft.SharedConstants");
-            System.out.println("Loaded " + constants + " module=" + constants.getModule() + " from=" + constants.getProtectionDomain().getCodeSource());
-            for (var method : constants.getMethods()) if (method.getName().equals("getCurrentVersion")) System.out.println(method);
-        }
         scenario.setup(context);
         for (int i = 0; i < 7; i++) scenario.measure(context);
         scenario.verify(context);

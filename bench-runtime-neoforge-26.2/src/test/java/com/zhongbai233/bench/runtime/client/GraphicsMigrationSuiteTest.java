@@ -7,7 +7,6 @@ import com.zhongbai233.bench.api.graphics.*;
 import com.zhongbai233.bench.api.neoforge.client.*;
 import com.zhongbai233.bench.api.neoforge.server.BenchArtifactWriter;
 import org.junit.jupiter.api.Test;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
@@ -92,9 +91,7 @@ class GraphicsMigrationSuiteTest {
             public Path write(String name,String type,String text){return write(name,type,text.getBytes(StandardCharsets.UTF_8));}
             public Path write(String name,String type,byte[] bytes){files.put(name,bytes);return Path.of(name);}public void register(Path file,String type){}
         };
-        final BenchClientContext context=(BenchClientContext)Proxy.newProxyInstance(BenchClientContext.class.getClassLoader(),new Class<?>[]{BenchClientContext.class},(p,m,a)->switch(m.getName()){
-            case "seed"->602263L;case "environment"->environment;case "artifacts"->artifacts;default->null;
-        });
+        final BenchClientContext context=new GraphicsMigrationTestContext(environment,artifacts);
         BenchClientScenario runner(BiFunction<GraphicsMigrationScene,Long,GraphicsMigrationGpu.Probe> start){return GraphicsMigrationSuiteTest.runner(()->DEVICE,start,()->"test");}
         com.google.gson.JsonObject report(){return JsonParser.parseString(new String(files.get("graphics-migration.json"),StandardCharsets.UTF_8)).getAsJsonObject();}
     }
