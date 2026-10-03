@@ -6,4 +6,4 @@ before_install:
   - sdk use java 25.0.2-open
 
 install:
-  - ./gradlew clean check verifyReleaseReadiness --no-daemon --stacktrace
+  - ./gradlew clean check verifyReleaseReadiness --no-daemon --max-workers=1 -PmodBenchBinaryArtifacts=true --stacktrace

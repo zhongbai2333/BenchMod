@@ -12,7 +12,7 @@ java {
 // ModDev must share the TestKit-injected classpath: fixtures that apply both plugins would
 // otherwise load ModDev in a child classloader our classes cannot link against.
 val modDevForTestKit: Configuration by configurations.creating
-val modDevVersion = providers.gradleProperty("modDevVersion").orElse("2.0.141")
+val modDevVersion = providers.gradleProperty("modDevVersion").orElse("2.0.148")
 
 dependencies {
     compileOnly("net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:${modDevVersion.get()}")

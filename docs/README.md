@@ -29,3 +29,8 @@
 - `examples/simple-neoforge-mod/gradle.properties` 的 `modbench_version` 是最后一个已在 JitPack 验证可用的版本。
 
 准备新版本时先调整并验证根版本；JitPack 构建成功后，再更新示例消费版本。不要为了保持两个文件表面一致而提前让示例依赖尚不存在的 tag。
+
+## Minecraft 26.3 分支
+
+- [26.3 移植、后端选择与验证](port-26.3.md)
+- [独立 26.3 消费方](../examples/simple-neoforge-mod-26.3/README.md)

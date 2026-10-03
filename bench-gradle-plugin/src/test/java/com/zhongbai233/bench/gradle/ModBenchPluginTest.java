@@ -3,6 +3,7 @@ package com.zhongbai233.bench.gradle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
 import java.util.Map;
@@ -39,9 +40,24 @@ class ModBenchPluginTest {
     }
 
     @Test
+    void selectsThe263AdaptersLazilyAfterPluginApplication() {
+        Project project = apply();
+        project.getExtensions().getByType(ModBenchExtension.class).getNeoForgeLine().set("26.3");
+        Set<String> dependencies = project.getConfigurations().getByName("benchImplementation")
+                .getAllDependencies().stream().map(dependency -> dependency.getName()).collect(Collectors.toSet());
+        assertTrue(dependencies.contains("bench-api-neoforge-26.3"));
+        assertFalse(dependencies.contains("bench-api-neoforge-26.1"));
+        assertEquals("bench-runtime-neoforge-26.3", project.getConfigurations()
+                .getByName("benchRuntimeMod").getAllDependencies().iterator().next().getName());
+        assertTrue(project.getConfigurations().getByName("runtimeClasspath").getAllDependencies().isEmpty());
+    }
+
+    @Test
     void automaticDependenciesCanBeDisabled() {
         Project project = apply();
         project.getExtensions().getByType(ModBenchExtension.class).getAutomaticDependencies().set(false);
+        // Opting out must not force a known line when the consumer supplies a custom adapter.
+        project.getExtensions().getByType(ModBenchExtension.class).getNeoForgeLine().set("custom");
 
         assertTrue(project.getConfigurations().getByName("benchImplementation").getAllDependencies().isEmpty());
         assertTrue(project.getConfigurations().getByName("benchRuntimeMod").getAllDependencies().isEmpty());
@@ -57,6 +73,59 @@ class ModBenchPluginTest {
         assertEquals(Map.of("fixtureFlag", "enabled"), task.getParticipantProjectProperties().get());
         assertEquals(project.getLayout().getBuildDirectory().get().getAsFile(),
                 task.getBuildDirectory().get().getAsFile());
+    }
+
+    @Test
+    void clientsDefaultToOpenGlAndPairedCoordinatorUsesTheSameSelection() {
+        Project project = apply();
+        ModBenchExtension extension = project.getExtensions().getByType(ModBenchExtension.class);
+        PairedBenchTask task = (PairedBenchTask) project.getTasks().getByName("runBenchPaired");
+
+        assertEquals("opengl", extension.getClientGraphicsBackend().get());
+        assertEquals("opengl", ClientGraphicsBackend.requested(project, extension).get());
+        assertEquals("opengl", task.getClientGraphicsBackend().get());
+        assertEquals(java.util.List.of("-PmodBench.client.graphicsBackend=opengl"),
+                task.participantProjectArguments(true));
+        assertTrue(task.participantProjectArguments(false).isEmpty());
+    }
+
+    @Test
+    void pairedClientsForwardNormalizedDslSelectionWithoutChangingServers() {
+        Project project = apply();
+        ModBenchExtension extension = project.getExtensions().getByType(ModBenchExtension.class);
+        extension.getClientGraphicsBackend().set(" VULKAN ");
+        extension.getPairedProjectProperties().put("fixtureFlag", "enabled");
+        extension.getPairedProjectProperties().put(ClientGraphicsBackend.PROPERTY, "opengl");
+        PairedBenchTask task = (PairedBenchTask) project.getTasks().getByName("runBenchPaired");
+
+        assertEquals("vulkan", task.getClientGraphicsBackend().get());
+        assertEquals(java.util.List.of("-PfixtureFlag=enabled", "-PmodBench.client.graphicsBackend=vulkan"),
+                task.participantProjectArguments(true));
+        assertEquals(java.util.List.of("-PfixtureFlag=enabled"), task.participantProjectArguments(false));
+    }
+
+    @Test
+    void rejectsUnknownAndEmptyGraphicsBackends() {
+        Project project = apply();
+        ModBenchExtension extension = project.getExtensions().getByType(ModBenchExtension.class);
+        for (String invalid : java.util.List.of("metal", "auto", "", "  ", "opengl,vulkan")) {
+            extension.getClientGraphicsBackend().set(invalid);
+            RuntimeException failure = assertThrows(RuntimeException.class,
+                    () -> ClientGraphicsBackend.requested(project, extension).get());
+            assertTrue(failure.getMessage().contains("expected opengl or vulkan"));
+        }
+    }
+
+    @Test
+    void normalizationDoesNotDependOnTheDefaultLocale() {
+        java.util.Locale previous = java.util.Locale.getDefault();
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("tr-TR"));
+            assertEquals("opengl", ClientGraphicsBackend.normalize(" OPENGL "));
+            assertEquals("vulkan", ClientGraphicsBackend.normalize(" VULKAN "));
+        } finally {
+            java.util.Locale.setDefault(previous);
+        }
     }
 
     private static Project apply() {

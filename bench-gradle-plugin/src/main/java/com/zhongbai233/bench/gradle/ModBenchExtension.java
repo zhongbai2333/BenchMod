@@ -9,6 +9,7 @@ import org.gradle.api.provider.MapProperty;
 /** User-facing Gradle DSL for configuring benchmark sources, runs, and paired participants. */
 public abstract class ModBenchExtension {
     private final Property<Boolean> automaticDependencies;
+    private final Property<String> neoForgeLine;
     private final Property<String> targetMod;
     private final Property<File> resultDirectory;
     private final Property<Long> seed;
@@ -18,6 +19,7 @@ public abstract class ModBenchExtension {
     private final Property<Boolean> clientAutoWorld;
     private final Property<Integer> clientWindowWidth;
     private final Property<Integer> clientWindowHeight;
+    private final Property<String> clientGraphicsBackend;
     private final Property<Boolean> clientVsync;
     private final Property<Integer> clientFpsLimit;
     private final Property<Integer> clientRenderDistance;
@@ -48,6 +50,7 @@ public abstract class ModBenchExtension {
     @Inject
     public ModBenchExtension(ObjectFactory objects) {
         automaticDependencies = objects.property(Boolean.class).convention(true);
+        neoForgeLine = objects.property(String.class).convention("26.1");
         targetMod = objects.property(String.class).convention("");
         resultDirectory = objects.property(File.class);
         seed = objects.property(Long.class).convention(0L);
@@ -57,6 +60,7 @@ public abstract class ModBenchExtension {
         clientAutoWorld = objects.property(Boolean.class).convention(true);
         clientWindowWidth = objects.property(Integer.class).convention(1280);
         clientWindowHeight = objects.property(Integer.class).convention(720);
+        clientGraphicsBackend = objects.property(String.class).convention("opengl");
         clientVsync = objects.property(Boolean.class).convention(false);
         clientFpsLimit = objects.property(Integer.class).convention(260);
         clientRenderDistance = objects.property(Integer.class).convention(12);
@@ -82,6 +86,8 @@ public abstract class ModBenchExtension {
 
     /** @return whether matching ModBench API and Runtime dependencies are added automatically */
     public Property<Boolean> getAutomaticDependencies() { return automaticDependencies; }
+    /** @return adapter line inferred from ModDev, or explicitly selected for manual integrations */
+    public Property<String> getNeoForgeLine() { return neoForgeLine; }
     /** @return target Mod id, or blank to infer the only declared Mod */
     public Property<String> getTargetMod() { return targetMod; }
     /** @return optional result directory override */
@@ -100,6 +106,8 @@ public abstract class ModBenchExtension {
     public Property<Integer> getClientWindowWidth() { return clientWindowWidth; }
     /** @return requested client window height */
     public Property<Integer> getClientWindowHeight() { return clientWindowHeight; }
+    /** @return requested client graphics backend: {@code opengl} (default) or {@code vulkan} */
+    public Property<String> getClientGraphicsBackend() { return clientGraphicsBackend; }
     /** @return whether VSync is enabled during client benchmarks */
     public Property<Boolean> getClientVsync() { return clientVsync; }
     /** @return client frame-rate limit */

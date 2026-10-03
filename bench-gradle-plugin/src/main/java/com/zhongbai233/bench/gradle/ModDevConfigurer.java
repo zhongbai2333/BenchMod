@@ -13,9 +13,13 @@ final class ModDevConfigurer {
     private ModDevConfigurer() {}
 
     static void configure(Project project, ModBenchExtension extension) {
+        ModDevExtension modDev = project.getExtensions().getByType(ModDevExtension.class);
+        extension.getNeoForgeLine().convention(project.provider(() -> NeoForgeLine.developmentLine(modDev.getVersion())));
         project.getPlugins().withId("java", ignored -> {
             project.afterEvaluate(ignoredProject -> {
-                ModDevExtension modDev = project.getExtensions().getByType(ModDevExtension.class);
+                if (extension.getAutomaticDependencies().get()) {
+                    NeoForgeLine.requireMatching(extension.getNeoForgeLine().get(), modDev.getVersion());
+                }
                 SourceSet bench = project.getExtensions().getByType(SourceSetContainer.class).getByName("bench");
                 modDev.addModdingDependenciesTo(bench);
                 ModModel targetMod = resolveTargetMod(modDev, extension);
@@ -105,6 +109,15 @@ final class ModDevConfigurer {
                 .orElse(extension.getPairedPort().map(String::valueOf)));
         }
         if (client) {
+            Provider<String> graphicsBackend = ClientGraphicsBackend.requested(project, extension);
+            if (extension.getNeoForgeLine().get().equals("26.3")) {
+                run.getSystemProperties().put(ClientGraphicsBackend.PROPERTY, graphicsBackend);
+                // Minecraft 26.3 honors this before options.txt; 26.1 has no backend selector.
+                run.getProgramArguments().add("--graphicsBackend");
+                run.getProgramArguments().add(graphicsBackend);
+            } else if (!graphicsBackend.get().equals("opengl")) {
+                throw new IllegalArgumentException("Vulkan benchmarks require the NeoForge 26.3 adapter");
+            }
             run.getSystemProperties().put("modBench.client.worldId", extension.getClientWorldId());
             run.getSystemProperties().put("modBench.client.autoWorld", extension.getClientAutoWorld().map(String::valueOf));
             run.getSystemProperties().put("modBench.client.windowWidth", extension.getClientWindowWidth().map(String::valueOf));

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/mc26.3]
     tags: ['*']
   pull_request:
   workflow_dispatch:
@@ -45,7 +45,22 @@ jobs:
           GROUP: com.github.zhongbai2333
           ARTIFACT: BenchMod
           VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || github.sha }}
-        run: ./gradlew check verifyReleaseReadiness --configuration-cache --no-daemon --stacktrace
+        run: ./gradlew check verifyReleaseReadiness --configuration-cache --no-daemon --max-workers=1 -PmodBenchBinaryArtifacts=true --stacktrace
+
+      - name: Publish current 26.3 adapters for the independent consumer
+        run: >-
+          ./gradlew
+          :bench-api-core:publishToMavenLocal
+          :bench-report-schema:publishToMavenLocal
+          :bench-api-neoforge-26.3:publishToMavenLocal
+          :bench-runtime-neoforge-26.3:publishToMavenLocal
+          :bench-gradle-plugin:publishToMavenLocal
+          --no-daemon --max-workers=1 -PmodBenchBinaryArtifacts=true --stacktrace
+
+      - name: Verify current 26.3 consumer compilation and production isolation
+        run: >-
+          ./gradlew -p examples/simple-neoforge-mod-26.3
+          compileBenchJava check --configuration-cache --no-daemon --max-workers=1 -PmodBenchBinaryArtifacts=true --stacktrace
 
       - name: Upload failure reports
         if: failure()

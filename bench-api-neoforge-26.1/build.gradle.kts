@@ -31,5 +31,10 @@ publishing {
 }
 
 neoForge {
-    version = rootProject.property("neoForgeVersion").toString()
+    enable {
+        version = rootProject.property("neoForgeVersion").toString()
+        // Optional official binary-patching path for memory-constrained CI/dev machines.
+        setDisableRecompilation(providers.gradleProperty("modBenchBinaryArtifacts")
+            .map(String::toBoolean).getOrElse(false))
+    }
 }

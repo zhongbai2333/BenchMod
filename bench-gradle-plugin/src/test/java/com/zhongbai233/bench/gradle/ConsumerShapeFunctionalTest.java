@@ -57,6 +57,28 @@ class ConsumerShapeFunctionalTest {
     }
 
     @Test
+    void selects263FromModDevWithoutResolvingGameArtifacts() throws Exception {
+        writeModDevProject("""
+                plugins {
+                    java
+                    id("net.neoforged.moddev")
+                    id("com.zhongbai233.minecraft-bench")
+                }
+                """);
+        Path script = projectDirectory.resolve("build.gradle.kts");
+        Files.writeString(script, Files.readString(script)
+                .replace("26.1.2.76", "26.3.0.45-beta")
+                .replace("automaticDependencies.set(false)", "automaticDependencies.set(true)") + """
+                val adapterNames = configurations.getByName("benchImplementation").allDependencies.map { it.name }
+                require("bench-api-neoforge-26.3" in adapterNames) { adapterNames.toString() }
+                require("bench-api-neoforge-26.1" !in adapterNames) { adapterNames.toString() }
+                val runtimeNames = configurations.getByName("benchRuntimeMod").allDependencies.map { it.name }
+                require(runtimeNames == listOf("bench-runtime-neoforge-26.3")) { runtimeNames.toString() }
+                """);
+        assertEquals(TaskOutcome.SUCCESS, outcome(run("help"), ":help"));
+    }
+
+    @Test
     void pairedClientsPrepareIndependentGameDirectories() throws Exception {
         writeModDevProject("""
                 plugins {
@@ -212,6 +234,134 @@ class ConsumerShapeFunctionalTest {
 
         assertEquals(TaskOutcome.SUCCESS, outcome(result, ":help"));
         assertFalse(result.getOutput().contains("runBenchServer"));
+    }
+
+    @Test
+    void backendDefaultsToOpenGlForIntegratedAndPairedClientsOnly() throws Exception {
+        writeBackendProject("");
+
+        run("writeBackendSelection");
+
+        assertBackendSelection("opengl");
+    }
+
+    @Test
+    void backendDslSelectsVulkanAndReusesConfigurationCache() throws Exception {
+        writeBackendProject("modBench { clientGraphicsBackend.set(\" VULKAN \") }\n");
+
+        run("writeBackendSelection", "--configuration-cache");
+        assertBackendSelection("vulkan");
+        BuildResult second = run("writeBackendSelection", "--configuration-cache");
+
+        assertTrue(second.getOutput().contains("Configuration cache entry reused."));
+        assertBackendSelection("vulkan");
+    }
+
+    @Test
+    void commandLineBackendOverridesDslAndInvalidatesConfigurationCache() throws Exception {
+        writeBackendProject("modBench { clientGraphicsBackend.set(\"vulkan\") }\n");
+
+        run("writeBackendSelection", "--configuration-cache", "-PmodBench.client.graphicsBackend= OPENGL ");
+        assertBackendSelection("opengl");
+        BuildResult second = run("writeBackendSelection", "--configuration-cache",
+                "-PmodBench.client.graphicsBackend= OPENGL ");
+        assertTrue(second.getOutput().contains("Configuration cache entry reused."));
+
+        run("writeBackendSelection", "--configuration-cache", "-PmodBench.client.graphicsBackend=vulkan");
+        assertBackendSelection("vulkan");
+    }
+
+    @Test
+    void invalidBackendCannotBecomeALaunchArgument() throws Exception {
+        writeBackendProject("modBench { clientGraphicsBackend.set(\"metal\") }\n");
+        BuildResult invalidDsl = runAndFail("writeBackendSelection");
+        assertTrue(invalidDsl.getOutput().contains("expected opengl or vulkan"));
+
+        // A valid command-line choice can replace an invalid DSL value.
+        run("writeBackendSelection", "-PmodBench.client.graphicsBackend=vulkan");
+        assertBackendSelection("vulkan");
+
+        writeBackendProject("modBench { clientGraphicsBackend.set(\"opengl\") }\n");
+        BuildResult invalidOverride = runAndFail("writeBackendSelection", "-PmodBench.client.graphicsBackend=auto");
+        assertTrue(invalidOverride.getOutput().contains("expected opengl or vulkan"));
+    }
+
+    @Test
+    void legacy261KeepsItsLaunchArgumentsAndRejectsVulkan() throws Exception {
+        writeBackendProject("");
+        Path script = projectDirectory.resolve("build.gradle.kts");
+        Files.writeString(script, Files.readString(script).replace("26.3.0.45-beta", "26.1.2.76"));
+        run("writeBackendSelection");
+        java.util.Properties selection = new java.util.Properties();
+        try (var reader = Files.newBufferedReader(projectDirectory.resolve("build/backend-selection.properties"))) {
+            selection.load(reader);
+        }
+        for (String run : java.util.List.of("benchClient", "benchRemoteClient")) {
+            assertEquals("absent", selection.getProperty(run + ".backend"));
+            assertFalse(selection.getProperty(run + ".args").contains("graphicsBackend"));
+        }
+        Files.writeString(script, Files.readString(script)
+                + "modBench { clientGraphicsBackend.set(\"vulkan\") }\n");
+        assertTrue(runAndFail("help").getOutput().contains("Vulkan benchmarks require the NeoForge 26.3 adapter"));
+    }
+
+    @Test
+    void manualAdaptersCanUseAnUnpublishedDevelopmentLine() throws Exception {
+        writeModDevProject("""
+                plugins {
+                    java
+                    id("net.neoforged.moddev")
+                    id("com.zhongbai233.minecraft-bench")
+                }
+                """);
+        Path script = projectDirectory.resolve("build.gradle.kts");
+        Files.writeString(script, Files.readString(script).replace("26.1.2.76", "26.2.0.88"));
+        assertEquals(TaskOutcome.SUCCESS, outcome(run("help"), ":help"));
+    }
+
+    private void writeBackendProject(String backendDsl) throws IOException {
+        writeModDevProject("""
+                plugins {
+                    java
+                    id("net.neoforged.moddev")
+                    id("com.zhongbai233.minecraft-bench")
+                }
+                """, "mods { create(\"fixturemod\") { sourceSet(sourceSets.main.get()) } }\n",
+                backendDsl + """
+                neoForge.runs.create("ordinaryClient") { client() }
+                afterEvaluate {
+                    tasks.register<org.gradle.api.tasks.WriteProperties>("writeBackendSelection") {
+                        destinationFile.set(layout.buildDirectory.file("backend-selection.properties"))
+                        for (name in listOf("benchClient", "benchRemoteClient", "benchServer", "benchPairedServer", "ordinaryClient")) {
+                            val run = neoForge.runs.getByName(name)
+                            property(name + ".backend", run.systemProperties.get()["modBench.client.graphicsBackend"] ?: "absent")
+                            property(name + ".args", run.programArguments.get().joinToString("|"))
+                        }
+                        val paired = tasks.named<com.zhongbai233.bench.gradle.PairedBenchTask>("runBenchPaired").get()
+                        property("paired.backend", paired.clientGraphicsBackend.get())
+                    }
+                }
+                """);
+        Path script = projectDirectory.resolve("build.gradle.kts");
+        Files.writeString(script, Files.readString(script).replace("26.1.2.76", "26.3.0.45-beta"));
+    }
+
+    private void assertBackendSelection(String expected) throws IOException {
+        java.util.Properties selection = new java.util.Properties();
+        try (var reader = Files.newBufferedReader(projectDirectory.resolve("build/backend-selection.properties"))) {
+            selection.load(reader);
+        }
+        for (String run : java.util.List.of("benchClient", "benchRemoteClient")) {
+            assertEquals(expected, selection.getProperty(run + ".backend"));
+            java.util.List<String> arguments = java.util.List.of(selection.getProperty(run + ".args").split("\\|"));
+            assertEquals(1, java.util.Collections.frequency(arguments, "--graphicsBackend"));
+            assertEquals(expected, arguments.get(arguments.indexOf("--graphicsBackend") + 1));
+        }
+        assertEquals(expected, selection.getProperty("paired.backend"));
+        for (String run : java.util.List.of("benchServer", "benchPairedServer", "ordinaryClient")) {
+            assertEquals("absent", selection.getProperty(run + ".backend"));
+            assertFalse(selection.getProperty(run + ".args").contains("graphicsBackend"));
+        }
     }
 
     private void writeModDevProject(String pluginsBlock) throws IOException {

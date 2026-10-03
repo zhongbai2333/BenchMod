@@ -29,6 +29,8 @@ include(
     "bench-report-schema",
     "bench-api-neoforge-26.1",
     "bench-runtime-neoforge-26.1",
+    "bench-api-neoforge-26.3",
+    "bench-runtime-neoforge-26.3",
     "bench-gradle-plugin",
     "bench-network-core",
     "bench-network-proxy",

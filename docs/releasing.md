@@ -14,12 +14,14 @@ VERSION=0.1.2 \
 ./gradlew check verifyReleaseReadiness --configuration-cache --no-daemon --stacktrace
 ```
 
-`verifyReleaseReadiness` 执行五个公开模块的 `check` 和 `publishToMavenLocal`，根 `check` 还覆盖暂未发布的 network 模块。GitHub CI 对分支构建使用 commit SHA、对 tag 构建使用 tag 名注入同一组 JitPack 环境变量，并由 Wrapper Validation 检查 Wrapper JAR、checksum 和脚本；因此正式 tag 的 POM 与插件内自动依赖坐标会在 JitPack 构建前得到等价验证。JitPack 也必须先成功执行已提交的 `./gradlew` 才会进入构建。公开模块是：
+`verifyReleaseReadiness` 执行七个公开模块的 `check` 和 `publishToMavenLocal`，根 `check` 还覆盖暂未发布的 network 模块。GitHub CI 对分支构建使用 commit SHA、对 tag 构建使用 tag 名注入同一组 JitPack 环境变量，并由 Wrapper Validation 检查 Wrapper JAR、checksum 和脚本；因此正式 tag 的 POM 与插件内自动依赖坐标会在 JitPack 构建前得到等价验证。JitPack 也必须先成功执行已提交的 `./gradlew` 才会进入构建。公开模块是：
 
 - `bench-api-core`
 - `bench-report-schema`
 - `bench-api-neoforge-26.1`
 - `bench-runtime-neoforge-26.1`
+- `bench-api-neoforge-26.3`
+- `bench-runtime-neoforge-26.3`
 - `bench-gradle-plugin`
 
 `bench-network-*` 尚未成为稳定公共发布面，因此不会发布；它们的测试仍由上面的根 `check` 覆盖。
@@ -42,7 +44,7 @@ VERSION=0.1.2 \
    ```
 
 3. 打开 [JitPack 的 BenchMod 页面](https://jitpack.io/#zhongbai2333/BenchMod)，选择该 tag 并触发或查看构建。
-4. 等待五个模块均可解析，用独立消费方完成下方最小验证，再更新示例和其他消费方的 `modbench_version`。
+4. 等待七个模块均可解析，用独立消费方完成下方最小验证，再更新示例和其他消费方的 `modbench_version`。
 
 不要移动或复用已经被消费的 tag。修复发布内容时创建新的 patch 版本。
 

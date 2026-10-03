@@ -52,6 +52,8 @@ public abstract class PairedBenchTask extends DefaultTask {
     @Input public abstract Property<String> getServerScenarioFilter();
     /** @return optional scenario filter applied to every paired client */
     @Input public abstract Property<String> getClientScenarioFilter();
+    /** @return normalized graphics backend forwarded only to physical clients */
+    @Input public abstract Property<String> getClientGraphicsBackend();
     /** @return explicit non-secret project properties forwarded to participant builds */
     @Input public abstract MapProperty<String, String> getParticipantProjectProperties();
 
@@ -169,19 +171,33 @@ public abstract class PairedBenchTask extends DefaultTask {
         if (!filter.isBlank()) {
             command.add("-PmodBench.scenarios=" + filter);
         }
+        command.addAll(participantProjectArguments(clientIndex != null));
+        return new ProcessBuilder(command)
+                .directory(project.toFile())
+                .redirectErrorStream(true)
+                .redirectOutput(log.toFile())
+                .start();
+    }
+
+    /** Builds explicit participant overrides without capturing a Project in the task action. */
+    List<String> participantProjectArguments(boolean client) {
+        List<String> arguments = new ArrayList<>();
         getParticipantProjectProperties().get().entrySet().stream()
                 .sorted(java.util.Map.Entry.comparingByKey())
                 .forEach(entry -> {
                     if (entry.getKey().isBlank() || entry.getKey().startsWith("modBench.internal.")) {
                         throw new GradleException("Unsafe paired project property name: " + entry.getKey());
                     }
-                    command.add("-P" + entry.getKey() + "=" + entry.getValue());
+                    // The selected backend has one source of truth and is a client-only override.
+                    if (!entry.getKey().equals(ClientGraphicsBackend.PROPERTY)) {
+                        arguments.add("-P" + entry.getKey() + "=" + entry.getValue());
+                    }
                 });
-        return new ProcessBuilder(command)
-                .directory(project.toFile())
-                .redirectErrorStream(true)
-                .redirectOutput(log.toFile())
-                .start();
+        if (client) {
+            arguments.add("-P" + ClientGraphicsBackend.PROPERTY + "="
+                    + ClientGraphicsBackend.normalize(getClientGraphicsBackend().get()));
+        }
+        return arguments;
     }
 
     private static Path findWrapper(Path project) {

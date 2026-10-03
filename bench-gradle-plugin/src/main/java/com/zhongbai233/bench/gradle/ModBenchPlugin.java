@@ -21,7 +21,6 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
  * task or inspect ModDev internal task/argument files.
  */
 public final class ModBenchPlugin implements Plugin<Project> {
-    private static final String NEOFORGE_LINE = "26.1";
 
     @Override
     public void apply(Project project) {
@@ -70,14 +69,16 @@ public final class ModBenchPlugin implements Plugin<Project> {
                 ? List.of(
                         project.getDependencies().create(group + ":bench-api-core:" + version),
                         project.getDependencies().create(
-                                group + ":bench-api-neoforge-" + NEOFORGE_LINE + ":" + version))
+                                group + ":bench-api-neoforge-"
+                                        + NeoForgeLine.requireSupported(extension.getNeoForgeLine().get()) + ":" + version))
                 : List.of());
         project.getConfigurations().getByName(bench.getImplementationConfigurationName())
                 .getDependencies().addAllLater(apiDependencies);
         Provider<List<Dependency>> runtimeDependencies = extension.getAutomaticDependencies().map(enabled -> {
             if (!enabled) return List.of();
             ModuleDependency runtime = (ModuleDependency) project.getDependencies()
-                    .create(group + ":bench-runtime-neoforge-" + NEOFORGE_LINE + ":" + version);
+                    .create(group + ":bench-runtime-neoforge-"
+                            + NeoForgeLine.requireSupported(extension.getNeoForgeLine().get()) + ":" + version);
             // The APIs are already on the bench classpath; the runtime enters only as a mod JAR.
             runtime.setTransitive(false);
             return List.of(runtime);
@@ -171,6 +172,7 @@ public final class ModBenchPlugin implements Plugin<Project> {
             task.getServerScenarioFilter().set(extension.getPairedServerScenarios());
             task.getClientScenarioFilter().set(extension.getPairedClientScenarios());
             task.getParticipantProjectProperties().set(extension.getPairedProjectProperties());
+            task.getClientGraphicsBackend().set(ClientGraphicsBackend.requested(project, extension));
         });
     }
 

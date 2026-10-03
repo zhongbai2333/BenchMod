@@ -31,6 +31,8 @@ val moduleDescriptions = mapOf(
     "bench-report-schema" to "Versioned JSON schemas and examples for ModBench reports.",
     "bench-api-neoforge-26.1" to "NeoForge 26.1 server and client benchmark provider APIs.",
     "bench-runtime-neoforge-26.1" to "NeoForge 26.1 runtime mod that executes ModBench scenarios and writes reports.",
+    "bench-api-neoforge-26.3" to "NeoForge 26.3 server and client benchmark provider APIs.",
+    "bench-runtime-neoforge-26.3" to "NeoForge 26.3 runtime mod that executes ModBench scenarios and writes reports.",
     "bench-gradle-plugin" to "Gradle plugin that isolates benchmark sources and configures NeoForge benchmark runs.",
 )
 
@@ -87,6 +89,8 @@ val publishedModules = listOf(
     "bench-report-schema",
     "bench-api-neoforge-26.1",
     "bench-runtime-neoforge-26.1",
+    "bench-api-neoforge-26.3",
+    "bench-runtime-neoforge-26.3",
     "bench-gradle-plugin",
 )
 
@@ -96,7 +100,7 @@ tasks.named("check") {
 
 tasks.register("verifyReleaseReadiness") {
     group = "verification"
-    description = "Builds, tests, and publishes the five public JitPack modules to Maven Local."
+    description = "Builds, tests, and publishes all public JitPack modules to Maven Local."
     dependsOn(publishedModules.map { ":$it:check" })
     dependsOn(publishedModules.map { ":$it:publishToMavenLocal" })
 }

@@ -6,6 +6,23 @@ ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它
 [docs/implementation_status.md](docs/implementation_status.md) 为准，长期设计见
 [docs/mod_bench_implementation_plan.md](docs/mod_bench_implementation_plan.md)。
 
+## Minecraft 26.3 移植分支
+
+`codex/mc26.3` 新增独立 `bench-api-neoforge-26.3` 与
+`bench-runtime-neoforge-26.3`，目标为 Minecraft `26.3` / NeoForge
+`26.3.0.45-beta` / Java 25；原有 26.1 模块继续固定到 `26.1.2.76`。
+Gradle 插件从 ModDev 自动推断开发线，拒绝未支持或不匹配的版本，避免默默加载旧 Runtime。
+本地发布版本为 `0.1.3-beta-mc26.3`，完整消费方见
+[26.3 示例](examples/simple-neoforge-mod-26.3)。
+
+```sh
+./gradlew check verifyReleaseReadiness
+./gradlew :bench-runtime-neoforge-26.3:runBenchServer
+./gradlew -p examples/simple-neoforge-mod-26.3 compileBenchJava check
+```
+
+26.3 的测试范围与限制见 [移植验证记录](docs/port-26.3.md)。下文现有能力描述记录 26.1 基线，不代表 26.3 图形端已完成实机验收。
+
 ## 当前状态
 
 项目已完成 **Phase 0**，并已跑通 **Phase 1（Server MVP）技术纵切**；当前处于 Phase 1 真实业务验收收尾，同时已完成较多 Phase 2 可靠性与 Phase 3 integrated-client 能力：
