@@ -5,6 +5,7 @@
 A reproducible in-game benchmarking toolkit for NeoForge mod developers. Keep real workloads in an isolated `src/bench` source set; BenchMod launches the game, runs scenarios, samples metrics, preserves evidence and verifies the results.
 
 > Current branch: `26.3` · Minecraft **26.3** · NeoForge **26.3.0.45-beta** · Java **25**
+>
 > This branch also retains the 26.1 baseline. Use the dedicated 26.3 example below; this plugin does not supply a 26.2 adapter.
 
 ## What it does
@@ -19,12 +20,12 @@ Passing compilation or headless CI is not a GPU pass. Frame intervals are not GP
 
 ## Choose a version
 
-| Branch | Minecraft | NeoForge | Java | 状态 / Status |
+| Branch | Minecraft | NeoForge | Java | Status |
 | --- | --- | --- | --- | --- |
-| [main](https://github.com/zhongbai2333/BenchMod/tree/main) | 26.1.2 | 26.1.2.76 | 25 | 基线 / baseline |
-| [26.2](https://github.com/zhongbai2333/BenchMod/tree/26.2) | 26.2 | 26.2.0.88 | 25 | 版本适配 + 图形探针 / port + graphics suite |
-| [26.3](https://github.com/zhongbai2333/BenchMod/tree/26.3) | 26.3 | 26.3.0.45-beta | 25 | 版本适配 + 图形探针 / port + graphics suite |
-| 1.21.1 | 1.21.1 | 21.1.252 | 21 | 移植中，尚未验收 / port in progress, not validated |
+| [main](https://github.com/zhongbai2333/BenchMod/tree/main) | 26.1.2 | 26.1.2.76 | 25 | Baseline |
+| [26.2](https://github.com/zhongbai2333/BenchMod/tree/26.2) | 26.2 | 26.2.0.88 | 25 | Port + graphics suite |
+| [26.3](https://github.com/zhongbai2333/BenchMod/tree/26.3) | 26.3 | 26.3.0.45-beta | 25 | Port + graphics suite |
+| [1.21.1](https://github.com/zhongbai2333/BenchMod/tree/1.21.1) | 1.21.1 | 21.1.252 | 21 | Server-validated beta; graphical client unverified |
 
 Do not mix version branches. A `bench-api-neoforge-<line>` suffix identifies an adapter line; `modBenchVersion` is the toolkit source version and does not prove that a release tag exists. See [versions and architecture](docs/wiki/Versions-and-Architecture.md).
 

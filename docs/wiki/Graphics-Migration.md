@@ -4,9 +4,9 @@
 
 ## 范围 / Scope
 
-本功能只在 `26.2` / `26.3` 分支，按需启用。它为 OpenGL → Blaze3D / Renderpearl 迁移提供真实 GPU 正确性探针；普通 BenchMod 消费方不会自动执行。`main` 26.1.2 和正在移植的 1.21.1 不应被描述为拥有这套高版本场景。
+本功能只在 `26.2` / `26.3` 分支，按需启用。它为 OpenGL → Blaze3D / Renderpearl 迁移提供真实 GPU 正确性探针；普通 BenchMod 消费方不会自动执行。`main` 26.1.2 和1.21.1 回移分支 不应被描述为拥有这套高版本场景。
 
-This opt-in suite is available on the `26.2` and `26.3` branches. It tests real GPU correctness for OpenGL → Blaze3D / Renderpearl migrations and does not run automatically for ordinary consumers. Do not assume it exists on main/26.1.2 or the in-progress 1.21.1 backport.
+This opt-in suite is available on the `26.2` and `26.3` branches. It tests real GPU correctness for OpenGL → Blaze3D / Renderpearl migrations and does not run automatically for ordinary consumers. Do not assume it exists on main/26.1.2 or the 1.21.1 backport.
 
 在 client Provider 的 `registerClient` 中调用：
 

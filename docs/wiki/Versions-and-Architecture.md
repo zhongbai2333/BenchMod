@@ -9,7 +9,7 @@
 | `main` | 26.1.2 | 26.1.2.76 | 2.0.141 | 25 | 0.1.3-beta | `26.1` |
 | `26.2` | 26.2 | 26.2.0.88 | 2.0.141 | 25 | 0.1.3-beta-mc26.2 | `26.2` |
 | `26.3` | 26.3 | 26.3.0.45-beta | 2.0.148 | 25 | 0.1.3-beta-mc26.3 | `26.3` |
-| 1.21.1 backport | 1.21.1 | 21.1.252 | 2.0.148 | 21 | 0.1.3-mc1.21.1-beta (in progress) | `1.21.1` (pending validation) |
+| [`1.21.1`](https://github.com/zhongbai2333/BenchMod/tree/1.21.1) | 1.21.1 | 21.1.252 | 2.0.148 | 21 | 0.1.3-mc1.21.1-beta | `1.21.1` |
 
 三条 26.x 分支使用仓库 Wrapper（Gradle 9.5.1）。CI 同时安装 Java 21 和 25：项目工具链用 25，NeoForge 工具任务可能还需要 21。不要只把 Minecraft 版本字符串改掉，就复用另一条线的 API/Runtime。
 
@@ -22,6 +22,10 @@ The 26.3 branch retains both 26.1 and 26.3 modules. Root `minecraftVersion` stil
 `modBenchVersion` 是源码/本地发布版本；消费方的 `modbench_version` 是依赖版本；`bench-api-neoforge-26.1` 的后缀是开发线。它们不是同一个概念。26.2/26.3 文档采用本地发布流程，不能假定带 `mc26.x` 后缀的 tag 已在 JitPack 发布。
 
 `modBenchVersion` identifies the source/local publication, `modbench_version` pins a consumer dependency, and a module suffix identifies an adapter line. These are distinct. The 26.2/26.3 instructions use local publication and do not assert that a matching JitPack tag exists.
+
+**1.21.1 验证范围 / Validation scope:** 1.21.1 是服务端已验收的 beta：Java 21 构建、测试、发布预检、生产隔离和独立消费方真实 dedicated server 已通过。客户端实际启动受无显示环境阻断，图形、GUI、截图和 paired-client E2E 尚未验收；不包含高版本 Vulkan/graphics-migration suite。尚无发布 tag，使用本地成套产物。详见 [1.21.1 移植记录](https://github.com/zhongbai2333/BenchMod/blob/1.21.1/docs/minecraft-1.21.1-port.md)。
+
+The 1.21.1 backport is a server-validated beta: Java 21 builds/tests, publication preflight, production isolation and an independent real dedicated server passed. Actual client startup is blocked by the display-less environment; graphics, GUI, screenshots and paired-client E2E remain unverified. It does not include the high-version Vulkan/graphics-migration suite. There is no release tag yet; consume matching locally published artifacts. See the linked port record for commands and evidence.
 
 ## 模块边界 / Module boundaries
 
