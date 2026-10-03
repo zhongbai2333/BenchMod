@@ -48,8 +48,8 @@ Gradle 插件回答“怎么启动和怎么验收”；Runtime Mod 回答“游�
 建立独立 `ModBench` 仓库，初始包含：
 
 - `bench-api-core`：纯 Java descriptor、status、metric、report、compatibility、parameter schema。
-- `bench-api-neoforge-26.1`：对应 Minecraft/NeoForge 开发线的 server/client context 与调度 API。
-- `bench-runtime-neoforge-26.1`：真正的 NeoForge Runtime Mod。
+- `bench-api-neoforge-1.21.1`：对应 Minecraft/NeoForge 开发线的 server/client context 与调度 API。
+- `bench-runtime-neoforge-1.21.1`：真正的 NeoForge Runtime Mod。
 - `bench-gradle-plugin`：可发布 Gradle binary plugin。
 - `bench-report-schema`：JSON Schema、示例、迁移规则。
 - `bench-testkit`：Gradle TestKit fixtures。
@@ -64,8 +64,8 @@ Gradle 插件回答“怎么启动和怎么验收”；Runtime Mod 回答“游�
 
 - Gradle plugin ID：`com.zhongbai233.minecraft-bench`
 - Core API：`com.zhongbai233.bench:bench-api-core:<version>`
-- NeoForge API：`com.zhongbai233.bench:bench-api-neoforge-26.1:<version>`
-- Runtime：`com.zhongbai233.bench:bench-runtime-neoforge-26.1:<version>`
+- NeoForge API：`com.zhongbai233.bench:bench-api-neoforge-1.21.1:<version>`
+- Runtime：`com.zhongbai233.bench:bench-runtime-neoforge-1.21.1:<version>`
 - Report schema：`com.zhongbai233.bench:bench-report-schema:<version>`
 
 Gradle plugin、Core API、Runtime 和 report schema 使用独立 SemVer，不强制同号。
@@ -416,7 +416,7 @@ Client 完整产物建议：
 首版明确支持：
 
 - ModDevGradle 2.x；
-- 当前验证重点：Gradle 9.5、ModDev 2.0.141、MC 26.1、Java 25；
+- 当前验证重点：Gradle 9.5、ModDev 2.0.148、MC 26.1、Java 21；
 - 通过 TestKit 扩展至 Gradle 8.8+ 与 legacy/modern classpath 两条分支。
 
 不通过反射兼容 ModDev 1.x；需要时发布单独 adapter/plugin major。

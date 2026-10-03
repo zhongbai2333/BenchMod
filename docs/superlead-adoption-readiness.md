@@ -14,10 +14,10 @@
 
 以下任一项不满足，就不能直接复用当前 `26.1` API/Runtime：
 
-- Minecraft `26.1.2`；
-- NeoForge `26.1.2.76`；
-- ModDevGradle `2.0.141` 或兼容的 ModDev 2.x；
-- Java 25，且 Gradle daemon 和 Java toolchain 都实际使用 Java 25；
+- Minecraft `1.21.1`；
+- NeoForge `21.1.252`；
+- ModDevGradle `2.0.148` 或兼容的 ModDev 2.x；
+- Java 21，且 Gradle daemon 和 Java toolchain 都实际使用 Java 21；
 - SuperLead 的目标 Mod 可由 `neoForge.mods` 声明，并有稳定 Mod ID；
 - SuperLead 的 Gradle 构建允许 `src/bench` 单向依赖 `src/main`；
 - SuperLead 的服务端业务 API 可在 server thread 创建 workload、查询 ready/稳定状态，并精确移除本次测试创建的对象；
@@ -105,8 +105,8 @@ Provider 必须遵守：
 SuperLead 项目预计需要：
 
 - 应用 `com.zhongbai233.minecraft-bench`；
-- `benchImplementation` 添加匹配的 `bench-api-core` 和 `bench-api-neoforge-26.1`；
-- `benchRuntimeMod` 添加 `bench-runtime-neoforge-26.1`；
+- `benchImplementation` 添加匹配的 `bench-api-core` 和 `bench-api-neoforge-1.21.1`；
+- `benchRuntimeMod` 添加 `bench-runtime-neoforge-1.21.1`；
 - `src/bench/java/.../SuperLeadBenchProvider.java`；
 - `src/bench/resources/META-INF/services/com.zhongbai233.bench.api.BenchProvider`；
 - `modBench.targetMod = "<superlead-mod-id>"`；

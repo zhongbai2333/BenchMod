@@ -27,13 +27,13 @@ class ModBenchPluginTest {
                 .map(dependency -> dependency.getGroup() + ":" + dependency.getName() + ":" + dependency.getVersion())
                 .collect(Collectors.toSet());
         assertTrue(benchImplementation.contains(group + ":bench-api-core:" + version));
-        assertTrue(benchImplementation.contains(group + ":bench-api-neoforge-26.1:" + version));
+        assertTrue(benchImplementation.contains(group + ":bench-api-neoforge-1.21.1:" + version));
 
         var runtimeDependencies = project.getConfigurations().getByName("benchRuntimeMod").getAllDependencies();
         assertEquals(1, runtimeDependencies.size());
         ModuleDependency runtime = (ModuleDependency) runtimeDependencies.iterator().next();
         assertEquals(group, runtime.getGroup());
-        assertEquals("bench-runtime-neoforge-26.1", runtime.getName());
+        assertEquals("bench-runtime-neoforge-1.21.1", runtime.getName());
         assertEquals(version, runtime.getVersion());
         assertFalse(runtime.isTransitive(), "the runtime enters the bench classpath as a mod JAR only");
     }

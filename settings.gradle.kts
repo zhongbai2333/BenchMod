@@ -27,8 +27,8 @@ rootProject.name = "mod-bench"
 include(
     "bench-api-core",
     "bench-report-schema",
-    "bench-api-neoforge-26.1",
-    "bench-runtime-neoforge-26.1",
+    "bench-api-neoforge-1.21.1",
+    "bench-runtime-neoforge-1.21.1",
     "bench-gradle-plugin",
     "bench-network-core",
     "bench-network-proxy",

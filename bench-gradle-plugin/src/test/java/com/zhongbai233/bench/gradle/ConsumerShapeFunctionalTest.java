@@ -214,6 +214,55 @@ class ConsumerShapeFunctionalTest {
         assertFalse(result.getOutput().contains("runBenchServer"));
     }
 
+    @Test
+    void ordinaryRunsNeverLoadBenchSourceSetsInEitherPluginOrder() throws Exception {
+        for (boolean benchPluginFirst : java.util.List.of(true, false)) {
+            String pluginIds = benchPluginFirst
+                    ? "id(\"com.zhongbai233.minecraft-bench\"); id(\"net.neoforged.moddev\")"
+                    : "id(\"net.neoforged.moddev\"); id(\"com.zhongbai233.minecraft-bench\")";
+            writeModDevProject("plugins { java; " + pluginIds + " }\n",
+                    "mods { create(\"fixturemod\") { sourceSet(sourceSets.main.get()) } }\n",
+                    """
+                    val extra by sourceSets.creating
+                    neoForge.mods.getByName("fixturemod").sourceSet(extra)
+                    neoForge.runs.create("ordinaryClient") { client() }
+                    neoForge.runs.create("ordinaryServer") { server() }
+                    afterEvaluate {
+                        val original = neoForge.mods.getByName("fixturemod")
+                        tasks.register<org.gradle.api.tasks.WriteProperties>("writeRunIsolation") {
+                            destinationFile.set(layout.buildDirectory.file("run-isolation.properties"))
+                            property("registered", neoForge.mods.names.joinToString(","))
+                            property("original", original.modSourceSets.get().map { it.name }.joinToString(","))
+                            for (name in listOf("ordinaryClient", "ordinaryServer", "benchClient", "benchServer", "benchRemoteClient", "benchPairedServer")) {
+                                val models = neoForge.runs.getByName(name).loadedMods.get()
+                                property(name + ".names", models.map { it.name }.joinToString(","))
+                                property(name + ".sources", models.flatMap { it.modSourceSets.get() }.map { it.name }.joinToString(","))
+                                property(name + ".original", models.any { it === original })
+                            }
+                        }
+                    }
+                    """);
+            run("writeRunIsolation", "--configuration-cache");
+            BuildResult repeated = run("writeRunIsolation", "--configuration-cache");
+            assertTrue(repeated.getOutput().contains("Configuration cache entry reused."));
+            java.util.Properties result = new java.util.Properties();
+            try (var reader = Files.newBufferedReader(projectDirectory.resolve("build/run-isolation.properties"))) {
+                result.load(reader);
+            }
+            assertEquals("fixturemod", result.getProperty("registered"));
+            assertEquals("main,extra", result.getProperty("original"));
+            for (String name : java.util.List.of("ordinaryClient", "ordinaryServer")) {
+                assertEquals("main,extra", result.getProperty(name + ".sources"));
+                assertEquals("true", result.getProperty(name + ".original"));
+            }
+            for (String name : java.util.List.of("benchClient", "benchServer", "benchRemoteClient", "benchPairedServer")) {
+                assertEquals("fixturemod", result.getProperty(name + ".names"));
+                assertEquals("main,extra,bench", result.getProperty(name + ".sources"));
+                assertEquals("false", result.getProperty(name + ".original"));
+            }
+        }
+    }
+
     private void writeModDevProject(String pluginsBlock) throws IOException {
         writeModDevProject(pluginsBlock,
                 "mods { create(\"fixturemod\") { sourceSet(sourceSets.main.get()) } }\n", "");
@@ -224,7 +273,7 @@ class ConsumerShapeFunctionalTest {
         write("settings.gradle.kts", "rootProject.name = \"moddev-fixture\"\n");
         write("build.gradle.kts", pluginsBlock + """
                 neoForge {
-                    version = "26.1.2.76"
+                    version = "21.1.252"
                 %s
                 }
                 modBench { automaticDependencies.set(false) }

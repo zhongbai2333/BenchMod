@@ -4,13 +4,13 @@ plugins {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
     withJavadocJar()
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release = 25
+    options.release = 21
     options.encoding = "UTF-8"
 }
 
@@ -23,6 +23,10 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+// FML 4 does not discover unmarked Java dependencies in the game layer. This manifest
+// keeps core/API/provider interfaces in one layer; core still has no platform dependencies.
+tasks.jar { manifest.attributes("FMLModType" to "GAMELIBRARY") }
 
 publishing {
     publications {

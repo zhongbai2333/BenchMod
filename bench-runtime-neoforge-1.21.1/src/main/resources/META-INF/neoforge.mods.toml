@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="modbench_runtime"
+version="${file.jarVersion}"
+displayName="ModBench Runtime"
+description='''Minecraft 1.21.1 dedicated-server and client benchmark execution runtime.'''
+
+[[dependencies.modbench_runtime]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.252,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.modbench_runtime]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+ordering="NONE"
+side="BOTH"
+
+[[mixins]]
+config="modbench.client.mixins.json"

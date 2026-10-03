@@ -1,18 +1,19 @@
-# Simple NeoForge Mod consumer
+# Minecraft 1.21.1 independent consumer / 独立消费示例
 
-这个独立示例验证外部 NeoForge Mod 如何消费已发布的 ModBench。默认从 JitPack 解析
-`gradle.properties` 中固定的版本，不依赖本机 Maven Local：
+使用 JDK 21、NeoForge 21.1.252。此分支尚无已发布 JitPack tag；必须先在仓库根目录发布本分支到 Maven Local。
 
-```bash
-./gradlew -p examples/simple-neoforge-mod check
+Use JDK 21 and NeoForge 21.1.252. No JitPack tag is published for this branch. From the repository root:
+
+```sh
+./gradlew -PmodBenchBinaryArtifacts=true check verifyReleaseReadiness
+./gradlew -p examples/simple-neoforge-mod -PmodBenchLocal=true -PmodBenchBinaryArtifacts=true compileBenchJava check
+./gradlew -p examples/simple-neoforge-mod -PmodBenchLocal=true -PmodBenchBinaryArtifacts=true verifyBenchServer
 ```
 
-开发 BenchMod 本身时，先把当前源码发布到 Maven Local，再显式切换示例的仓库和坐标：
+服务端报告 / Server report: `build/modBench/raw-results/default/server/summary.json` within this example.
 
-```bash
-./gradlew publishToMavenLocal
-./gradlew -p examples/simple-neoforge-mod check -PmodBenchLocal=true
-```
+JFR 按场景输出 / JFR is per scenario: `artifacts/jfr/simplebench.server-smoke.jfr`.
 
-不要把 `modBenchLocal` 写入 `gradle.properties`。默认路径必须始终代表全新外部消费方，CI 也会在
-隔离的 Gradle 用户目录中验证 JitPack 插件、API 和 Runtime 依赖能够解析。
+可用图形环境下执行 `verifyBenchClient`；无显示服务的 CI 不能证明截图/GUI/GPU 正确性。For client validation, run `verifyBenchClient` on a graphical machine. Headless CI cannot establish screenshot/GUI/GPU correctness.
+
+See [1.21.1 verification notes](../../docs/minecraft-1.21.1-port.md) and the [consumer quickstart](../../docs/consumer-quickstart.md).

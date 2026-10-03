@@ -1,5 +1,6 @@
 # ModBench 实现进度
 
+> 本文件保留继承实现与路线的背景；1.21.1 的实际验收及未验证客户端边界，以 [版本回移记录](minecraft-1.21.1-port.md) 为准。
 > 评估日期：2026-08-13。进度按 `docs/mod_bench_implementation_plan.md` 的可验证交付物计算，不以文件数量代替完成度。
 
 ## 总体判断
@@ -20,10 +21,10 @@
 
 ### 构建与模块
 
-- Gradle 9.5.1 Wrapper、Java 25、多模块构建与集中版本属性；当前验证线为 Minecraft 26.1.2 / NeoForge 26.1.2.76。
-- `bench-api-core`、`bench-api-neoforge-26.1`、`bench-runtime-neoforge-26.1`、`bench-gradle-plugin`、`bench-report-schema`。
+- Gradle 9.5.1 Wrapper、Java 21、多模块构建与集中版本属性；当前验证线为 Minecraft 1.21.1 / NeoForge 21.1.252。
+- `bench-api-core`、`bench-api-neoforge-1.21.1`、`bench-runtime-neoforge-1.21.1`、`bench-gradle-plugin`、`bench-report-schema`。
 - `bench-network-core`：与 Minecraft 解耦的网络 profile、语义层、backend capability、稳定 profile hash 与独立随机流派生；TCP stream profile 会拒绝伪 loss/reorder/duplicate。
-- `bench-network-proxy`：Java 25 虚拟线程实现的跨平台 loopback TCP data plane；在线小消息通过 5 ms idle flush 有界转发，完整 quantum 的 jitter 轨迹不依赖 socket read 分区；支持方向性延迟、确定性抖动、token-bucket 带宽、可重叠 pause 与 abortive close，并输出 metrics 和 `modbench-network-event-1` JSONL。默认 capability 明确不包含 blackhole、half-close、handshake refusal 或 packet loss。
+- `bench-network-proxy`：Java 21 虚拟线程实现的跨平台 loopback TCP data plane；在线小消息通过 5 ms idle flush 有界转发，完整 quantum 的 jitter 轨迹不依赖 socket read 分区；支持方向性延迟、确定性抖动、token-bucket 带宽、可重叠 pause 与 abortive close，并输出 metrics 和 `modbench-network-event-1` JSONL。默认 capability 明确不包含 blackhole、half-close、handshake refusal 或 packet loss。
 - 可独立运行的 `examples/simple-neoforge-mod` 消费方，而不是仅在 Runtime 项目内自测。
 
 ### Core 与 Provider
@@ -83,10 +84,10 @@
 - `BenchCaptureOptions` 默认在截图前同时满足渲染就绪与连续稳定帧，并隐藏 HUD；门禁超过 900 帧预算仍未打开时照常截图，但记录 `gate_satisfied=false` 并使整轮失效，不会挂起。
 - `ClientEnvironmentGuard` 在渲染首次就绪后武装，随后监测窗口尺寸变化、最小化、失焦、暂停、弹出屏幕与 overlay；任一命中即记录 invalidation 并把整轮报告降级为 `INCONCLUSIVE`。失焦严格度由 `clientRequireWindowFocus` 控制。
 - 图形基线关闭 `pauseOnLostFocus`，无人值守运行不会被失焦弹出的暂停菜单卡住。
-- 图形基线把 `inactivityFpsLimit` 固定为 `MINIMIZED`：Minecraft 的 AFK 降帧（无真实输入 60 秒后降到 30fps、10 分钟后 10fps）对无人值守 bench 必然触发，会静默污染帧指标；关闭后未聚焦但可见的窗口保持满速渲染。窗口最小化仍会被引擎降到 10fps，与环境守卫的 `INCONCLUSIVE` 判定自洽。
+- 1.21.1 没有新版 `inactivityFpsLimit` 配置；诊断明确记录 `not_available`。窗口最小化通过 GLFW 检测并由环境守卫判定为 `INCONCLUSIVE`。
 - Runtime 每个 client tick 释放鼠标抓取：光标不再被游戏窗口锁定，且物理鼠标移动无法转动玩家视角（本身是不确定性来源）。两项均记入 `client.graphics.*` 诊断并被示例 E2E 验收。
 - client 场景失败、超时或取消时自动抓取最终画面 `failure-<scenario>.png`，并在场景边界为未完成截图预留落盘预算。
-- 使用 Minecraft 26.1.2 `WorldOpenFlows` 自动创建或打开固定 ID/seed 的 integrated world，包含 world-ready timeout。
+- 使用 Minecraft 1.21.1 `WorldOpenFlows` 自动创建或打开固定 ID/seed 的 integrated world，包含 world-ready timeout。
 - Client 世界预设 `clientWorldPreset`：`normal` / `flat` / `void`（vanilla "The Void" superflat，地形负载归零）；非默认预设自动使用带后缀的世界目录，切换预设不会复用旧生成器的世界。三种预设均经真实 E2E 验证（void 截图确认纯虚空画面）。
 - Client 维度 `clientDimension`：`overworld` / `the_nether` / `the_end`；integrated server 侧传送，等待 client level 切换与新 LocalPlayer 就绪后才开始场景，超时归入 dimension_ready 失败。the_end 已经真实 E2E 验证（截图含 Ender Dragon 与黑曜石柱）。
 - Dedicated server 世界供给：`prepareBenchServerWorld` 在每次 `runBenchServer` 前把 `level-seed`（=`modBench.seed`）、`level-type`（`serverLevelType`）与可选 `generator-settings` 写入 server.properties，供给指纹变化时自动删除旧世界目录——报告里的 seed 从此真实对应服务端世界。`minecraft:flat` 已经真实 E2E 验证，`serverLevelType` 记入 run.parameters。
@@ -107,7 +108,7 @@
 - 外部接入步骤文档：`docs/consumer-quickstart.md`。
 - Plugin 自动注册通用任务：`verifyProductionJarHasNoBenchContent`（挂入 `check`）、组合 run + report 的 `verifyBenchServer`/`verifyBenchClient`、可独立复验的 `verifyBench*Report`（支持单个或多个期望场景）、`cleanBench*Results` 和失败也会运行的 `collectBench*Artifacts`。
 - 示例生产 JAR 不包含 Provider 或 ServiceLoader descriptor；TestKit 覆盖 descriptor 泄漏的负例。
-- TestKit 消费方形状矩阵（真实 ModDev 2.0.141 经共享 plugin-under-test classpath 参与）：ModBench 在 ModDev 之前/之后应用均生成 `runBench*`；多 Mod 项目缺 `targetMod` 给出明确失败、指定后正常；Groovy DSL 消费方可编译并通过生产 JAR 检查；Unicode（中文）项目路径可编译验证；`benchRuntimeMod` 不泄漏进普通 `runtimeClasspath` 且确实进入 bench runtime classpath；无 java 插件时安静不作为而非崩溃。
+- TestKit 消费方形状矩阵（真实 ModDev 2.0.148 经共享 plugin-under-test classpath 参与）：ModBench 在 ModDev 之前/之后应用均生成 `runBench*`；多 Mod 项目缺 `targetMod` 给出明确失败、指定后正常；Groovy DSL 消费方可编译并通过生产 JAR 检查；Unicode（中文）项目路径可编译验证；`benchRuntimeMod` 不泄漏进普通 `runtimeClasspath` 且确实进入 bench runtime classpath；无 java 插件时安静不作为而非崩溃。
 
 ### 报告与测试
 

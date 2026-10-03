@@ -21,7 +21,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
  * task or inspect ModDev internal task/argument files.
  */
 public final class ModBenchPlugin implements Plugin<Project> {
-    private static final String NEOFORGE_LINE = "26.1";
+    private static final String NEOFORGE_LINE = "1.21.1";
 
     @Override
     public void apply(Project project) {

@@ -1,9 +1,6 @@
 before_install:
-  # NeoForge's asset tooling requests a Java 21 toolchain even though BenchMod
-  # itself builds and runs Gradle with Java 25.
   - sdk install java 21.0.2-open
-  - sdk install java 25.0.2-open
-  - sdk use java 25.0.2-open
+  - sdk use java 21.0.2-open
 
 install:
-  - ./gradlew clean check verifyReleaseReadiness --no-daemon --stacktrace
+  - ./gradlew -PmodBenchBinaryArtifacts=true clean check verifyReleaseReadiness --no-daemon --stacktrace

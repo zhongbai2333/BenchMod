@@ -8,12 +8,16 @@ group = providers.gradleProperty("mod_group_id").get()
 version = providers.gradleProperty("mod_version").get()
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
 }
 
 neoForge {
-    version = providers.gradleProperty("neo_version").get()
+    enable {
+        version = providers.gradleProperty("neo_version").get()
+        isDisableRecompilation = providers.gradleProperty("modBenchBinaryArtifacts")
+            .map(String::toBoolean).getOrElse(false)
+    }
     mods {
         create("simplebench") {
             sourceSet(sourceSets.main.get())
@@ -24,7 +28,7 @@ neoForge {
 // The ModBench plugin adds the API and Runtime dependencies automatically at its own version.
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release = 25
+    options.release = 21
     options.encoding = "UTF-8"
 }
 
@@ -45,7 +49,7 @@ tasks.named<ProcessResources>("processResources") {
 tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchServerReport") {
     expectedScenarioId.set("simplebench.server-smoke")
     expectedArtifactPaths.set(
-        listOf("artifacts/samples/simplebench.server-smoke.jsonl", "artifacts/jfr/recording.jfr")
+        listOf("artifacts/samples/simplebench.server-smoke.jsonl", "artifacts/jfr/simplebench.server-smoke.jfr")
     )
     expectedMetricNames.set(listOf("server.tick.duration", "simplebench.workload.loaded_entities"))
     expectedLoadedModIds.set(listOf("minecraft", "neoforge", "simplebench", "modbench_runtime"))
@@ -59,7 +63,7 @@ tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchClie
             "artifacts/screenshots/simple-client-render-orbit.png",
             "artifacts/screenshots/simple-client-render-hud-free.png",
             "artifacts/samples/simplebench.client-render-smoke.jsonl",
-            "artifacts/jfr/recording.jfr",
+            "artifacts/jfr/simplebench.client-render-smoke.jfr",
             "artifacts/custom/camera-diff.csv",
         )
     )
@@ -69,7 +73,7 @@ tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchClie
             "client.environment.valid=true",
             "client.screenshot.gate_satisfied=true",
             "client.screenshot.hud_hidden=true",
-            "client.graphics.start.inactivity_fps_limit=minimized",
+            "client.graphics.start.inactivity_fps_limit=not_available",
             "client.graphics.start.mouse_grabbed=false",
         )
     )
@@ -95,7 +99,7 @@ modBench {
     // The example runs on interactive developer machines where the game window can lose focus.
     // Keep the default `true` on a dedicated benchmark machine so a stolen focus reports INCONCLUSIVE.
     clientRequireWindowFocus = false
-    // Low-overhead JFR profile recorded for every run, registered as artifacts/jfr/recording.jfr.
+    // Low-overhead JFR profile recorded per scenario as artifacts/jfr/<scenario-id>.jfr.
     jfrEnabled = true
     pairedServerScenarios = "simplebench.server-smoke"
     pairedClientScenarios = "simplebench.client-render-smoke"

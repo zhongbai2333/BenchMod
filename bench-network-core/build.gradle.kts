@@ -3,13 +3,13 @@ plugins {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
     withJavadocJar()
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release = 25
+    options.release = 21
     options.encoding = "UTF-8"
 }
 

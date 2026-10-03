@@ -19,15 +19,21 @@ final class ModDevConfigurer {
                 SourceSet bench = project.getExtensions().getByType(SourceSetContainer.class).getByName("bench");
                 modDev.addModdingDependenciesTo(bench);
                 ModModel targetMod = resolveTargetMod(modDev, extension);
-                targetMod.sourceSet(bench);
+                // Keep the normal ModModel untouched. Ordinary runs default to every model in
+                // modDev.mods, so registering a second model there would also leak bench output.
+                // A detached public-DSL model preserves the logical mod name and all target
+                // source sets, but is loaded only by the four explicitly configured bench runs.
+                ModModel benchMod = project.getObjects().domainObjectContainer(ModModel.class).create(targetMod.getName());
+                benchMod.getModSourceSets().addAll(targetMod.getModSourceSets());
+                benchMod.sourceSet(bench);
                 modDev.getRuns().create("benchServer", run ->
-                    configureRun(project, extension, bench, targetMod, run, "server"));
+                    configureRun(project, extension, bench, benchMod, run, "server"));
                 modDev.getRuns().create("benchClient", run ->
-                    configureRun(project, extension, bench, targetMod, run, "client"));
+                    configureRun(project, extension, bench, benchMod, run, "client"));
                 modDev.getRuns().create("benchPairedServer", run ->
-                    configureRun(project, extension, bench, targetMod, run, "paired-server"));
+                    configureRun(project, extension, bench, benchMod, run, "paired-server"));
                 modDev.getRuns().create("benchRemoteClient", run ->
-                    configureRun(project, extension, bench, targetMod, run, "remote-client"));
+                    configureRun(project, extension, bench, benchMod, run, "remote-client"));
             });
         });
     }

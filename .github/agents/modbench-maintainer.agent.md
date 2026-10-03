@@ -58,7 +58,7 @@ Read `docs/mod_bench_implementation_plan.md`, relevant ADRs, and affected build/
 ## Definition of done
 
 - New behavior is covered by tests, including negative and failure paths.
-- Root build passes on the repository wrapper with Java 25.
+- Root build passes on the repository wrapper with Java 21.
 - Independent consumer smoke passes when the change affects Plugin, API, Runtime, classloading, or reports.
 - Configuration cache is reused on an identical second invocation.
 - Production and ordinary runtime isolation remain proven.
