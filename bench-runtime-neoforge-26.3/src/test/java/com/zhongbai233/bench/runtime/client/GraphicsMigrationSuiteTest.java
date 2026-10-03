@@ -1,14 +1,12 @@
 package com.zhongbai233.bench.runtime.client;
 
 import com.zhongbai233.bench.runtime.graphics.GraphicsMigrationGpu;
-import com.zhongbai233.bench.api.neoforge.graphics.GraphicsMigrationSuite;
 
 import com.google.gson.JsonParser;
 import com.zhongbai233.bench.api.graphics.*;
 import com.zhongbai233.bench.api.neoforge.client.*;
 import com.zhongbai233.bench.api.neoforge.server.BenchArtifactWriter;
 import org.junit.jupiter.api.Test;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
@@ -30,7 +28,7 @@ class GraphicsMigrationSuiteTest {
     }
     @Test void backendFallbackBlocksWithoutSubmittingGpuWork() throws Exception {
         Harness h=new Harness();
-        var runner=runnerWith(()->Map.of("actualBackend","vulkan","deviceName","GPU","vendor","V","driver","D"),
+        var runner=runner(()->Map.of("actualBackend","vulkan","deviceName","GPU","vendor","V","driver","D"),
                 (s,seed)->{ throw new AssertionError("Must not execute mismatched backend"); },()->"test");
         runner.setup(h.context);run(runner,h);runner.verify(h.context);runner.teardown(h.context);
         assertEquals("BLOCKED",h.report().get("status").getAsString()); assertFalse(h.invalidations.isEmpty());
@@ -56,7 +54,7 @@ class GraphicsMigrationSuiteTest {
         assertEquals(1,closed.get());assertEquals("BLOCKED",h.report().get("status").getAsString());assertEquals(7,h.report().getAsJsonArray("scenes").size());
     }
     @Test void absentDeviceRemainsBlockedThroughVerifyAndTeardown() throws Exception {
-        Harness h=new Harness();var runner=runnerWith(()->{throw new IllegalStateException("missing");},(s,seed)->null,()->"test");
+        Harness h=new Harness();var runner=runner(()->{throw new IllegalStateException("missing");},(s,seed)->null,()->"test");
         runner.setup(h.context);run(runner,h);runner.verify(h.context);runner.teardown(h.context);
         assertEquals("BLOCKED",h.report().get("status").getAsString());
     }
@@ -65,14 +63,13 @@ class GraphicsMigrationSuiteTest {
         runner.setup(h.context);for(int i=0;i<400;i++) runner.measure(h.context);runner.teardown(h.context);
         assertEquals(1,closed.get());assertTrue(h.report().getAsJsonArray("scenes").get(0).getAsJsonObject().get("reason").getAsString().contains("400"));
     }
-    private static BenchClientScenario runnerWith(java.util.function.Supplier<Map<String,String>> device,
-            BiFunction<GraphicsMigrationScene,Long,GraphicsMigrationGpu.Probe> start,
-            java.util.function.Supplier<String> version) throws Exception {
-        var type = Class.forName("com.zhongbai233.bench.runtime.graphics.GraphicsMigrationRuntime$Runner");
-        var constructor = type.getDeclaredConstructor(java.util.function.Supplier.class,
-                BiFunction.class, java.util.function.Supplier.class);
-        constructor.setAccessible(true);
-        return (BenchClientScenario) constructor.newInstance(device, start, version);
+    private static BenchClientScenario runner(java.util.function.Supplier<Map<String,String>> device,
+            BiFunction<GraphicsMigrationScene,Long,GraphicsMigrationGpu.Probe> start,java.util.function.Supplier<String> version) {
+        try {
+            var constructor=Class.forName("com.zhongbai233.bench.runtime.graphics.GraphicsMigrationRuntime$Runner")
+                    .getDeclaredConstructor(java.util.function.Supplier.class,BiFunction.class,java.util.function.Supplier.class);
+            constructor.setAccessible(true); return (BenchClientScenario)constructor.newInstance(device,start,version);
+        } catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
     }
     private static int run(BenchClientScenario runner,Harness h)throws Exception{
         int ticks=0;while(runner.measure(h.context)!=BenchClientStepResult.COMPLETE){if(++ticks>3000)throw new AssertionError("did not complete");}return ticks+1;
@@ -94,10 +91,8 @@ class GraphicsMigrationSuiteTest {
             public Path write(String name,String type,String text){return write(name,type,text.getBytes(StandardCharsets.UTF_8));}
             public Path write(String name,String type,byte[] bytes){files.put(name,bytes);return Path.of(name);}public void register(Path file,String type){}
         };
-        final BenchClientContext context=(BenchClientContext)Proxy.newProxyInstance(BenchClientContext.class.getClassLoader(),new Class<?>[]{BenchClientContext.class},(p,m,a)->switch(m.getName()){
-            case "seed"->602263L;case "environment"->environment;case "artifacts"->artifacts;default->null;
-        });
-        BenchClientScenario runner(BiFunction<GraphicsMigrationScene,Long,GraphicsMigrationGpu.Probe> start) throws Exception {return runnerWith(()->DEVICE,start,()->"test");}
+        final BenchClientContext context=new GraphicsMigrationTestContext(environment,artifacts);
+        BenchClientScenario runner(BiFunction<GraphicsMigrationScene,Long,GraphicsMigrationGpu.Probe> start){return GraphicsMigrationSuiteTest.runner(()->DEVICE,start,()->"test");}
         com.google.gson.JsonObject report(){return JsonParser.parseString(new String(files.get("graphics-migration.json"),StandardCharsets.UTF_8)).getAsJsonObject();}
     }
 }

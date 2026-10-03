@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Test;
 class GraphicsMigrationUnavailableDeviceTest {
     @Test
     void missingGpuBlocksEveryRequiredSceneAndStillWritesReport() throws Exception {
+        assertSame(RenderSystem.class.getClassLoader(), BenchClientContext.class.getClassLoader(),
+                "Minecraft-bound API signatures must live in the game loader");
+        assertSame(RenderSystem.class.getClassLoader(), GraphicsMigrationSuite.class.getClassLoader());
         assertNull(RenderSystem.tryGetDevice(), "This bootstrap-only test must not initialize a renderer");
         List<String> invalidations = new ArrayList<>();
         Map<String, String> artifacts = new LinkedHashMap<>();
@@ -38,20 +41,7 @@ class GraphicsMigrationUnavailableDeviceTest {
             }
             public void register(Path path, String type) { fail("Unexpected artifact " + path); }
         };
-        BenchClientContext context = new BenchClientContext() {
-            public net.minecraft.client.Minecraft minecraft() { throw new UnsupportedOperationException(); }
-            public net.minecraft.client.multiplayer.ClientLevel level() { throw new UnsupportedOperationException(); }
-            public net.minecraft.client.player.LocalPlayer player() { throw new UnsupportedOperationException(); }
-            public BenchClientScheduler scheduler() { throw new UnsupportedOperationException(); }
-            public com.zhongbai233.bench.api.neoforge.server.BenchMetricRecorder metrics() { throw new UnsupportedOperationException(); }
-            public BenchFrameMetrics frames() { throw new UnsupportedOperationException(); }
-            public BenchClientAutomation automation() { throw new UnsupportedOperationException(); }
-            public BenchArtifactWriter artifacts() { return writer; }
-            public BenchClientEnvironment environment() { return environment; }
-            public com.zhongbai233.bench.api.neoforge.server.BenchCancellationToken cancellation() { throw new UnsupportedOperationException(); }
-            public Path resultDirectory() { return Path.of("unused-negative-test"); }
-            public long seed() { return 602263L; }
-        };
+        BenchClientContext context = new GraphicsMigrationTestContext(environment, writer);
         AtomicReference<BenchClientScenarioFactory> factory = new AtomicReference<>();
         GraphicsMigrationSuite.register((descriptor, scenarioFactory) -> factory.set(scenarioFactory));
         BenchClientScenario scenario = factory.get().create(context);

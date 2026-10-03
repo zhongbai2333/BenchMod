@@ -38,3 +38,9 @@ neoForge {
             .map(String::toBoolean).getOrElse(false))
     }
 }
+
+// Public API signatures reference Minecraft types. Load them in FML's game layer so
+// consumers and runtime implementations resolve the same ClientLevel/Minecraft classes.
+tasks.jar {
+    manifest.attributes("FMLModType" to "GAMELIBRARY")
+}
