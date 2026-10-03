@@ -52,17 +52,15 @@ dependencyResolutionManagement {
 
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        if (useLocalModBench) {
-            mavenLocal {
-                content {
-                    includeGroup("com.zhongbai233.bench")
-                }
+        // ModDev inserts its game repositories first. Keep local/JitPack ModBench artifacts
+        // exclusive so a transient remote error cannot prevent reaching the chosen source.
+        exclusiveContent {
+            forRepository {
+                if (useLocalModBench) mavenLocal() else maven("https://jitpack.io")
             }
-        } else {
-            maven("https://jitpack.io") {
-                content {
-                    includeGroup("com.github.zhongbai2333.BenchMod")
-                }
+            filter {
+                includeGroup(if (useLocalModBench) "com.zhongbai233.bench"
+                    else "com.github.zhongbai2333.BenchMod")
             }
         }
         mavenCentral()

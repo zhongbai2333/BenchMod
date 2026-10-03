@@ -33,7 +33,9 @@ Verified 2026-10-03 with Java 25.0.3 and the repository Gradle 9.5.1 wrapper:
 - Configuration cache reused on the successful aggregate invocation
 - Default source-mode 26.3 API/runtime checks: **passed** (17 API + 70 runtime tests)
 - `:bench-runtime-neoforge-26.3:runBenchServer`: **passed**; one provider, all six phases completed, automatic shutdown, exact Minecraft/NeoForge target versions, final report validated against the Draft 2020-12 schema
-- Independent 26.3 consumer verification is in progress and is not yet claimed passed
+- Independent `examples/simple-neoforge-mod-26.3` `compileBenchJava check verifyBenchServer`: **passed twice**; formal report checks, expected loaded mods/custom metric, per-scenario JFR, production/source JAR isolation and automatic shutdown
+- The identical second consumer invocation reused the configuration cache; ordinary `runtimeClasspath` contains no ModBench API/runtime artifacts
+- Consumer Maven/JitPack coordinates are exclusive to their selected repository, avoiding remote probes before Maven Local; expected JFR paths match the runtime's per-scenario names
 
 The cloud sandbox blocks FML's normal local JVM attach socket. Tests were run through FML's supported premain path: the unmodified `DevAgent.class` from each matching official loader (11.0.13 / 12.0.8), a local agent manifest, and test-only JVM arguments. No Minecraft/NeoForge classes were replaced and no tests were disabled. Normal development machines can use FML's ordinary self-attach path.
 
