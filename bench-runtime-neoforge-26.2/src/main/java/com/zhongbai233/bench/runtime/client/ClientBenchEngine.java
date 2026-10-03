@@ -376,6 +376,11 @@ public final class ClientBenchEngine implements BenchClientScheduler, BenchCance
         report.addDiagnostic("client.frame.interval.max_ns=" + frames.maxIntervalNanos());
         report.addDiagnostic("jvm.heap.used_bytes=" + snapshot.heapUsedBytes());
         report.addDiagnostic("jvm.gc.count=" + snapshot.gcCount());
+        try {
+            recordGraphicsSnapshot("end", new ClientGraphicsController().snapshot(minecraft));
+        } catch (RuntimeException exception) {
+            environment.invalidate("client.graphics.end.capture_failed=" + exception.getClass().getName());
+        }
         recordEnvironmentDiagnostics();
         applyEnvironmentVerdict();
         try {

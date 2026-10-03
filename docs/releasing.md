@@ -1,3 +1,5 @@
+> 26.2 工作分支尚无不可变发布 tag。当前示例固定 `0.1.3-beta-mc26.2`，CI 的 `Verify 26.2 independent consumer contract` 先发布本分支到 Maven Local，再编译独立示例；这不构成 JitPack 远程发布成功的证据。以下 tag 流程适用于准备正式发布时。
+
 # 通过 JitPack 发布 ModBench
 
 ModBench 使用 JitPack 从不可变 Git tag 构建，不需要向 Maven Central 申请 namespace、配置签名或管理中央仓库凭据。
@@ -29,9 +31,9 @@ VERSION=0.1.2 \
 根项目和示例项目的版本属性用途不同：
 
 - 根目录 `gradle.properties` 的 `modBenchVersion` 表示当前源码和计划创建的 tag；稳定前可使用明确的预发布后缀，例如 `0.1.3-beta`，不要使用会随时间变化的 `SNAPSHOT` 作为发布候选；
-- `examples/simple-neoforge-mod/gradle.properties` 的 `modbench_version` 固定最后一个已经确认可用的 JitPack tag。
+- `examples/simple-neoforge-mod/gradle.properties` 在本移植分支固定当前源码版本，使用显式本地消费；正式发布后的维护分支再固定已验证的 JitPack tag。
 
-因此发布候选阶段不要求二者相等。示例必须继续验证旧的稳定版本，直到新 tag 的 JitPack 产物实际可用。
+本移植分支中二者必须匹配，避免拿旧版 26.1 Runtime 验证 26.2。正式发布后，远程消费验证必须使用已确认存在的对应版本 tag。
 
 1. 把根目录 `gradle.properties` 中的 `modBenchVersion` 改成计划发布的版本，并确认目标 commit 的 CI 已通过。JitPack 的正式版本仍由 tag 注入，但仓库内版本必须与 tag 保持一致。
 2. 创建并推送不可变 tag，例如：
@@ -65,8 +67,4 @@ com.github.zhongbai2333.BenchMod:bench-runtime-neoforge-26.2:<tag>
 
 确认存在 `runBenchServer`、`runBenchClient`、`verifyBenchServer` 和 `verifyBenchClient`，且自动注入的 API/Runtime 坐标来自 JitPack。需要完整验收时再执行对应的 `verifyBench*`，它们会启动 Minecraft，不能放进普通快速 CI。
 
-仓库内 `examples/simple-neoforge-mod` 默认就是该远程消费形态；CI 的
-`Verify released JitPack consumer contract` job 使用独立 `GRADLE_USER_HOME`、刷新依赖并执行
-`compileBenchJava` 与 `benchRuntimeClasspath` 解析，防止本机 Maven Local 或已有 Gradle 缓存掩盖发布问题。
-该 job 验证的是示例中记录的“最后一个已确认版本”，而发布候选本身由
-`verifyReleaseReadiness` 在 JitPack 环境坐标下验证。新 tag 验收完成后更新示例版本，后续 CI 才会持续监控它。
+本分支 `Verify 26.2 independent consumer contract` job 使用独立 `GRADLE_USER_HOME`，但明确使用本轮发布的 Maven Local 产物。正式 tag 发布后，还需使用上述全新远程消费命令验证 JitPack；源码 publication preflight 不能代替远程解析验证。
