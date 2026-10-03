@@ -45,7 +45,7 @@ tasks.named<ProcessResources>("processResources") {
 tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchServerReport") {
     expectedScenarioId.set("simplebench.server-smoke")
     expectedArtifactPaths.set(
-        listOf("artifacts/samples/simplebench.server-smoke.jsonl", "artifacts/jfr/recording.jfr")
+        listOf("artifacts/samples/simplebench.server-smoke.jsonl", "artifacts/jfr/simplebench.server-smoke.jfr")
     )
     expectedMetricNames.set(listOf("server.tick.duration", "simplebench.workload.loaded_entities"))
     expectedLoadedModIds.set(listOf("minecraft", "neoforge", "simplebench", "modbench_runtime"))
@@ -59,7 +59,7 @@ tasks.named<com.zhongbai233.bench.gradle.VerifyBenchReportTask>("verifyBenchClie
             "artifacts/screenshots/simple-client-render-orbit.png",
             "artifacts/screenshots/simple-client-render-hud-free.png",
             "artifacts/samples/simplebench.client-render-smoke.jsonl",
-            "artifacts/jfr/recording.jfr",
+            "artifacts/jfr/simplebench.client-render-smoke.jfr",
             "artifacts/custom/camera-diff.csv",
         )
     )
@@ -95,7 +95,7 @@ modBench {
     // The example runs on interactive developer machines where the game window can lose focus.
     // Keep the default `true` on a dedicated benchmark machine so a stolen focus reports INCONCLUSIVE.
     clientRequireWindowFocus = false
-    // Low-overhead JFR profile recorded for every run, registered as artifacts/jfr/recording.jfr.
+    // Low-overhead JFR profile recorded for every executed scenario, registered as artifacts/jfr/<scenario-id>.jfr.
     jfrEnabled = true
     pairedServerScenarios = "simplebench.server-smoke"
     pairedClientScenarios = "simplebench.client-render-smoke"
