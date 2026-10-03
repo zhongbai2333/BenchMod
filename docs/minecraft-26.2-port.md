@@ -48,3 +48,21 @@ FML's dynamic self-attach failed in this worker because the JVM attach socket wa
 ```
 
 CI also explicitly uses binary artifacts and executes the independent dedicated-server smoke. The original source-recompilation failure remains an upstream limitation; binary-artifact success does not claim it has been fixed.
+
+
+## Graphics migration assistant validation (2026-10-03)
+
+The opt-in suite is documented in [graphics-migration-assistant.md](graphics-migration-assistant.md).
+Validation after implementation:
+
+- Root `check verifyReleaseReadiness`: 196 JUnit tests, zero failures/errors/skips; configuration cache reused
+- 47 Python comparison tests; fixed contract, malformed evidence, scene/device/backend mismatches, vendor aliases and raw RGBA thresholds covered
+- The actual Minecraft Vulkan GLSL frontend compiles all three probe shaders to intermediary SPIR-V and exposes the expected uniform/sampler bindings; the OpenGL ShaderC frontend also compiles all three. These are frontend checks, not device rendering
+- Real FML public registration → Factory SPI → default scenario test with no device emits six BLOCKED results, explicit optional reload SKIP, and no synthetic pixel artifacts
+- Independent graphics consumer `compileBenchJava check` plus ordinary `runtimeClasspath` inspection pass; production/source JAR isolation passes; identical invocation reuses configuration cache
+- Original independent simple consumer still compiles and passes isolation; its real dedicated-server run and report verification pass after the new Runtime publication
+- `git diff --check` passes
+
+All Minecraft/GPU execution lives in the Runtime MOD's transformed classloader. The API provides only a pure-Java registration façade and its narrow Factory SPI, avoiding protected game-class loading from ordinary API libraries.
+
+Still not run: graphical OpenGL/Vulkan clients, real pixel readbacks, GPU timing, or paired clients. No display, X11 socket, Xvfb, `/dev/dri`, or Vulkan ICD is present in this worker. Full engine resource reload is deliberately SKIP; close/recreate ownership checks are not a driver-global leak test.

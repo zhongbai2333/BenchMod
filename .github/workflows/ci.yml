@@ -47,6 +47,9 @@ jobs:
           VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || github.sha }}
         run: ./gradlew -PmodBenchBinaryArtifacts=true check verifyReleaseReadiness --configuration-cache --no-daemon --stacktrace
 
+      - name: Test graphics comparison contract
+        run: python3 -m unittest discover -s tools/tests -v
+
       - name: Upload failure reports
         if: failure()
         uses: actions/upload-artifact@v7
@@ -99,4 +102,11 @@ jobs:
           ./gradlew -p examples/simple-neoforge-mod
           -PmodBenchLocal=true -PmodBenchBinaryArtifacts=true
           runBenchServer verifyBenchServerReport
+          --configuration-cache --no-daemon --stacktrace
+
+      - name: Compile isolated graphics migration consumer
+        run: >-
+          ./gradlew -p examples/graphics-migration-assistant
+          -PmodBenchLocal=true -PmodBenchBinaryArtifacts=true
+          compileBenchJava check dependencies --configuration runtimeClasspath
           --configuration-cache --no-daemon --stacktrace

@@ -157,3 +157,8 @@
 - 独立发布审计 Agent：`.github/agents/modbench-release-auditor.agent.md`
 
 Skill 负责告诉 AI 如何把其他 NeoForge Mod 接入本项目；Maintainer Agent 负责实现、修复和演进；Release Auditor 只读验证跨模块边界与发布门禁。
+
+
+## 图形移植助手
+
+高版本分支提供独立启用的6个真实GPU探针、版本化像素oracle与OpenGL/Vulkan比较器，见 [图形移植助手](graphics-migration-assistant.md)。CPU/Schema/状态机测试和API编译不等于GPU通过；真实双后端客户端尚需在有显示器与驱动的机器验证。引擎resource reload在首版明确SKIP。

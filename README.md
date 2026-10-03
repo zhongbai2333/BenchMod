@@ -136,3 +136,8 @@ Bench 运行不锁定鼠标（每 tick 释放抓取，光标可自由离开窗�
 - 分别运行 `runBenchClient verifyBenchClientReport -PmodBench.client.graphicsBackend=opengl` 和 `runBenchClient verifyBenchClientReport -PmodBench.client.graphicsBackend=vulkan`。每次 run 都会清理当前输出，比较前请分别保存结果。
 - GUI/HUD、相机、截图目标与区块就绪检查使用 26.2 的新公开 API；截图仍经 Minecraft 的 `Screenshot.takeScreenshot`，不直接调用 OpenGL。
 - 移植验证的实际通过项和未运行项见 [26.2 验证记录](docs/minecraft-26.2-port.md)。
+
+
+## 图形移植助手
+
+高版本分支提供独立启用的6个真实GPU探针、版本化像素oracle与OpenGL/Vulkan比较器，见 [图形移植助手](docs/graphics-migration-assistant.md)。CPU/Schema/状态机测试和API编译不等于GPU通过；真实双后端客户端尚需在有显示器与驱动的机器验证。引擎resource reload在首版明确SKIP。

@@ -29,3 +29,8 @@
 - `examples/simple-neoforge-mod/gradle.properties` 的 `modbench_version` 是最后一个已在 JitPack 验证可用的版本。
 
 准备新版本时先调整并验证根版本；JitPack 构建成功后，再更新示例消费版本。不要为了保持两个文件表面一致而提前让示例依赖尚不存在的 tag。
+
+
+## 图形移植助手
+
+高版本分支提供独立启用的6个真实GPU探针、版本化像素oracle与OpenGL/Vulkan比较器，见 [图形移植助手](graphics-migration-assistant.md)。CPU/Schema/状态机测试和API编译不等于GPU通过；真实双后端客户端尚需在有显示器与驱动的机器验证。引擎resource reload在首版明确SKIP。
