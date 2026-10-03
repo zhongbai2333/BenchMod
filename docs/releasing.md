@@ -18,8 +18,8 @@ VERSION=0.1.2 \
 
 - `bench-api-core`
 - `bench-report-schema`
-- `bench-api-neoforge-26.1`
-- `bench-runtime-neoforge-26.1`
+- `bench-api-neoforge-26.2`
+- `bench-runtime-neoforge-26.2`
 - `bench-gradle-plugin`
 
 `bench-network-*` 尚未成为稳定公共发布面，因此不会发布；它们的测试仍由上面的根 `check` 覆盖。
@@ -50,8 +50,8 @@ JitPack 构建会通过 `jitpack.yml` 安装 NeoForge 工具任务需要的 Java
 
 ```text
 com.github.zhongbai2333.BenchMod:bench-api-core:<tag>
-com.github.zhongbai2333.BenchMod:bench-api-neoforge-26.1:<tag>
-com.github.zhongbai2333.BenchMod:bench-runtime-neoforge-26.1:<tag>
+com.github.zhongbai2333.BenchMod:bench-api-neoforge-26.2:<tag>
+com.github.zhongbai2333.BenchMod:bench-runtime-neoforge-26.2:<tag>
 ```
 
 ## 发布后的最小验证

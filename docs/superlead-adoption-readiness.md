@@ -1,3 +1,5 @@
+> 历史基线记录：本文记录原 26.1 分支的验证，不代表 26.2 已通过相同验收。本分支 26.2 当前证据见 [移植验证记录](minecraft-26.2-port.md)。
+
 # SuperLead 接入前准备与测试门禁
 
 > 评估日期：2026-07-26。本文针对 SuperLead 首次接入 ModBench 的 dedicated-server 实验，不代表当前已经完成 SuperLead 业务场景。

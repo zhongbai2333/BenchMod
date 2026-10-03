@@ -105,6 +105,11 @@ final class ModDevConfigurer {
                 .orElse(extension.getPairedPort().map(String::valueOf)));
         }
         if (client) {
+            Provider<String> graphicsBackend = ClientGraphicsBackend.requested(project, extension);
+            run.getSystemProperties().put(ClientGraphicsBackend.PROPERTY, graphicsBackend);
+            // Minecraft 26.2 Main accepts --graphicsBackend and honors it before options.txt.
+            run.getProgramArguments().add("--graphicsBackend");
+            run.getProgramArguments().add(graphicsBackend);
             run.getSystemProperties().put("modBench.client.worldId", extension.getClientWorldId());
             run.getSystemProperties().put("modBench.client.autoWorld", extension.getClientAutoWorld().map(String::valueOf));
             run.getSystemProperties().put("modBench.client.windowWidth", extension.getClientWindowWidth().map(String::valueOf));

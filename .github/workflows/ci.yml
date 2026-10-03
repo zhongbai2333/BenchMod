@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/mc26.2]
     tags: ['*']
   pull_request:
   workflow_dispatch:
@@ -58,8 +58,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  released-consumer:
-    name: Verify released JitPack consumer contract
+  source-consumer:
+    name: Verify 26.2 independent consumer contract
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -77,13 +77,16 @@ jobs:
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v6
 
+      - name: Publish this branch for the independent consumer
+        run: ./gradlew publishToMavenLocal --no-daemon --stacktrace
+
       - name: Resolve and compile the external consumer
         env:
-          # Keep this step independent from Maven Local and every Gradle cache used by
-          # the source-publication preflight above. The runner context is available here.
+          # Keep dependency resolution independent from the publication Gradle cache.
+          # Maven Local intentionally contains only this branch on the fresh runner.
           GRADLE_USER_HOME: ${{ runner.temp }}/gradle-jitpack-consumer
         run: >-
-          ./gradlew -p examples/simple-neoforge-mod
+          ./gradlew -p examples/simple-neoforge-mod -PmodBenchLocal=true
           compileBenchJava
           dependencies --configuration benchRuntimeClasspath
           --refresh-dependencies

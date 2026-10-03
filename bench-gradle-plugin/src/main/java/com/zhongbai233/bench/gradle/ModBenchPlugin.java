@@ -21,7 +21,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
  * task or inspect ModDev internal task/argument files.
  */
 public final class ModBenchPlugin implements Plugin<Project> {
-    private static final String NEOFORGE_LINE = "26.1";
+    private static final String NEOFORGE_LINE = "26.2";
 
     @Override
     public void apply(Project project) {
@@ -171,6 +171,7 @@ public final class ModBenchPlugin implements Plugin<Project> {
             task.getServerScenarioFilter().set(extension.getPairedServerScenarios());
             task.getClientScenarioFilter().set(extension.getPairedClientScenarios());
             task.getParticipantProjectProperties().set(extension.getPairedProjectProperties());
+            task.getClientGraphicsBackend().set(ClientGraphicsBackend.requested(project, extension));
         });
     }
 

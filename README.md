@@ -1,3 +1,5 @@
+> 本分支移植到 Minecraft 26.2。下文功能介绍继承原 26.1 基线；26.2 的实际验证范围以 [移植验证记录](docs/minecraft-26.2-port.md) 为准。
+
 # ModBench
 
 ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它将构建期编排、游戏内执行和业务 workload 分成 Gradle Plugin、Runtime Mod 与 test-only Provider 三层。
@@ -12,22 +14,22 @@ ModBench 是面向 NeoForge Mod 的可复用游戏内基准测试工具链。它
 
 - `bench-api-core`：纯 Java Provider SPI、兼容范围、ServiceLoader 发现和生命周期原型；
 - `bench-report-schema`：权威 JSON 报告 Schema `1.0.0` 与最小样例；
-- `bench-api-neoforge-26.1`：非阻塞、跨 tick 的 dedicated server 场景契约；
-- `bench-runtime-neoforge-26.1`：server/client lifecycle runner、JVM/GC 与客户端 frame interval 基础采样；
+- `bench-api-neoforge-26.2`：非阻塞、跨 tick 的 dedicated server 场景契约；
+- `bench-runtime-neoforge-26.2`：server/client lifecycle runner、JVM/GC 与客户端 frame interval 基础采样；
 - `bench-gradle-plugin`：隔离 `bench` source set，并通过 ModDev 2.x 公共 DSL创建 `benchServer` 与 `benchClient` run；
 - `examples/simple-neoforge-mod`：独立消费方示例，验证 Plugin、`src/bench` Provider 和 Runtime 隔离；
 - `docs/adr`：Provider、报告和 ModDev 公共边界的架构决策记录。
 
 ### 模块命名约定
 
-目录名中的 `neoforge-26.1` 表示该模块适配的 **NeoForge/Minecraft 兼容开发线**，不是
+目录名中的 `neoforge-26.2` 表示该模块适配的 **NeoForge/Minecraft 兼容开发线**，不是
 ModBench 自身的发布版本，也不是构建生成的临时目录。平台无关模块保持
 `bench-api-core`、`bench-report-schema` 等名称；直接依赖 NeoForge 的 API 和 Runtime
-使用 `bench-api-neoforge-26.1`、`bench-runtime-neoforge-26.1`，以便未来可以并存其他
+使用 `bench-api-neoforge-26.2`、`bench-runtime-neoforge-26.2`，以便未来可以并存其他
 NeoForge 开发线。ModBench 的项目版本由根目录 `gradle.properties` 中的
 `modBenchVersion` 统一管理。
 
-当前 Server MVP 纵切已针对 NeoForge `26.1.2.76` / Minecraft `26.1.2` dedicated server 配置并验证：Runtime `@Mod` 启动、游戏 classloader ServiceLoader、跨 tick workload、partial/final JSON 原子写入、自动停服和 Draft 2020-12 Schema 验证均已闭环。
+当前 Server MVP 纵切已针对 NeoForge `26.2.0.88` / Minecraft `26.2` dedicated server 配置并验证：Runtime `@Mod` 启动、游戏 classloader ServiceLoader、跨 tick workload、partial/final JSON 原子写入、自动停服和 Draft 2020-12 Schema 验证均已闭环。
 
 客户端纵切现已具备 `BenchClientProvider`、client tick 生命周期、`RenderFrameEvent.Pre` 帧间隔采样、关键帧 camera 时间轴（缓动、固定速度、循环/往返）、渲染就绪与帧稳定门禁、环境有效性判定、可隐藏 HUD 的 PNG 截图（带 SHA-256）、GUI interaction-tree 快照/严格 selector/点击、滚动、拖动、按键、Unicode 输入/控件区域截图、失败时自动抓帧、client 报告和 `runBenchClient`。Runtime 会自动创建或重用固定 seed 的 integrated world，应用窗口、VSync、FPS cap 与视距基线，执行场景并自动退出；普通 client 自动化的独立消费方真实 E2E 已通过，GUI 交互仍待外部消费方真实 E2E。
 
@@ -59,12 +61,12 @@ Gradle 项目；不要复制或保留旧版本 JAR 来掩盖缓存问题。
 ### Dedicated server smoke
 
 ```powershell
-.\gradlew.bat :bench-runtime-neoforge-26.1:runBenchServer
+.\gradlew.bat :bench-runtime-neoforge-26.2:runBenchServer
 ```
 
 该任务无需玩家输入，会启动真实 dedicated server、执行 test-only `SmokeBenchProvider` 并自动退出。权威报告输出到：
 
-`bench-runtime-neoforge-26.1/build/modBench/raw-results/smoke/server/summary.json`
+`bench-runtime-neoforge-26.2/build/modBench/raw-results/smoke/server/summary.json`
 
 生产 Runtime JAR 不包含 smoke Provider 或 `META-INF/services/BenchProvider`。
 
@@ -76,7 +78,7 @@ Plugin 自动注册整套验证与收集任务：`verifyProductionJarHasNoBenchC
 
 每个场景的原始指标样本导出为 `artifacts/samples/<scenario>.jsonl`（每 metric×phase 一行），`summary.json` 旁另生成人类可读的 `report.md` 派生视图。`environment.git` 经 configuration-cache 安全的 git 探测记录本地 commit 与 dirty 状态。帧稳定判据与截图门禁预算可经 `clientStableFrameRatio` / `clientCaptureGateFrameBudget` 配置，全部实验参数都在 `run.parameters` 里。
 
-正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。仓库内独立示例默认使用已发布的 `0.1.3-beta`，并由 CI 在隔离 Gradle 用户目录中验证远程解析；开发当前源码时可显式传入 `-PmodBenchLocal=true` 切换 Maven Local。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，示例说明见 [examples/simple-neoforge-mod/README.md](examples/simple-neoforge-mod/README.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
+正式版本通过 **JitPack** 消费，插件用 `resolutionStrategy.useModule(...)` 映射到 `bench-gradle-plugin`，API/Runtime 依赖由插件按同一次 JitPack 构建的坐标自动注入（可用 `modBench.automaticDependencies = false` 关闭）。本分支面向 Minecraft 26.2 / NeoForge 26.2.0.88，使用独立版本 `0.1.3-beta-mc26.2`，尚未发布不可变 JitPack tag。先执行 `./gradlew publishToMavenLocal`，再对独立示例显式传入 `-PmodBenchLocal=true`。CI 验证本分支源码的本地发布和独立消费，不把旧版发布结果当作 26.2 证据。外部 Mod 的完整接入步骤见 [docs/consumer-quickstart.md](docs/consumer-quickstart.md)，示例说明见 [examples/simple-neoforge-mod/README.md](examples/simple-neoforge-mod/README.md)，发布流程见 [docs/releasing.md](docs/releasing.md)。
 
 ### Client MVP
 
@@ -125,3 +127,12 @@ Bench 运行不锁定鼠标（每 tick 释放抓取，光标可自由离开窗�
 ## 许可证
 
 [MIT](LICENSE)
+
+## Minecraft 26.2 渲染后端验证
+
+- 本分支的版本适配模块为 `bench-api-neoforge-26.2` / `bench-runtime-neoforge-26.2`，不与 26.1 或 26.3 Runtime 混用。
+- `modBench.clientGraphicsBackend` 默认为 `opengl`；也可设置为 `vulkan`。命令行 `-PmodBench.client.graphicsBackend=vulkan` 优先于 DSL，用于独立 client 和 paired client。
+- 插件通过 Minecraft 26.2 的 `--graphicsBackend` 在设备初始化前指定后端。Minecraft 仍可能回退，所以报告同时保存请求后端、实际后端、GPU、厂商与驱动；实际后端不匹配时 Runtime 将环境标记为无效，结果为 `INCONCLUSIVE`，不能将回退的 OpenGL 结果当成 Vulkan 成功。
+- 分别运行 `runBenchClient verifyBenchClientReport -PmodBench.client.graphicsBackend=opengl` 和 `runBenchClient verifyBenchClientReport -PmodBench.client.graphicsBackend=vulkan`。每次 run 都会清理当前输出，比较前请分别保存结果。
+- GUI/HUD、相机、截图目标与区块就绪检查使用 26.2 的新公开 API；截图仍经 Minecraft 的 `Screenshot.takeScreenshot`，不直接调用 OpenGL。
+- 移植验证的实际通过项和未运行项见 [26.2 验证记录](docs/minecraft-26.2-port.md)。

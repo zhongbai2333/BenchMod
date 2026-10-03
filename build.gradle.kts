@@ -29,8 +29,8 @@ version = if (jitPackBuild) {
 val moduleDescriptions = mapOf(
     "bench-api-core" to "Platform-neutral ModBench provider, scenario, metric, camera, and GUI selector APIs.",
     "bench-report-schema" to "Versioned JSON schemas and examples for ModBench reports.",
-    "bench-api-neoforge-26.1" to "NeoForge 26.1 server and client benchmark provider APIs.",
-    "bench-runtime-neoforge-26.1" to "NeoForge 26.1 runtime mod that executes ModBench scenarios and writes reports.",
+    "bench-api-neoforge-26.2" to "NeoForge 26.2 server and client benchmark provider APIs.",
+    "bench-runtime-neoforge-26.2" to "NeoForge 26.2 runtime mod that executes ModBench scenarios and writes reports.",
     "bench-gradle-plugin" to "Gradle plugin that isolates benchmark sources and configures NeoForge benchmark runs.",
 )
 
@@ -85,8 +85,8 @@ subprojects {
 val publishedModules = listOf(
     "bench-api-core",
     "bench-report-schema",
-    "bench-api-neoforge-26.1",
-    "bench-runtime-neoforge-26.1",
+    "bench-api-neoforge-26.2",
+    "bench-runtime-neoforge-26.2",
     "bench-gradle-plugin",
 )
 

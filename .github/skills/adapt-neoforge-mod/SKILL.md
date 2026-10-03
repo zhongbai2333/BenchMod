@@ -13,10 +13,10 @@ Use this workflow to integrate a consumer NeoForge Mod without coupling its prod
 - Java 25
 - Gradle 9.5.1
 - ModDevGradle 2.x (currently verified with 2.0.141)
-- Minecraft 26.1.2 / NeoForge 26.1.2.76
+- Minecraft 26.2 / NeoForge 26.2.0.88
 - Dedicated server and integrated Client MVP are automated; Client creates or reuses a configured world/dimension, applies a graphics baseline, controls absolute pose/look-at/framing and camera paths, enforces readiness/environment validity, captures PNG artifacts, samples frames, optionally records JFR, writes JSON/JSONL/Markdown, and exits; GUI automatic input, paired separate-client mode, perceptual image comparison, and GameTest are not implemented
 
-If the consumer uses another Minecraft development line, do not silently reuse the 26.1 API or Runtime. Add or select matching `bench-api-neoforge-<line>` and `bench-runtime-neoforge-<line>` modules.
+If the consumer uses another Minecraft development line, do not silently reuse the 26.2 API or Runtime. Add or select matching `bench-api-neoforge-<line>` and `bench-runtime-neoforge-<line>` modules.
 
 ## Integration workflow
 

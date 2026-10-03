@@ -13,7 +13,11 @@ java {
 }
 
 neoForge {
-    version = providers.gradleProperty("neo_version").get()
+    enable {
+        version = providers.gradleProperty("neo_version").get()
+        isDisableRecompilation = providers.gradleProperty("modBenchBinaryArtifacts")
+            .map(String::toBoolean).getOrElse(false)
+    }
     mods {
         create("simplebench") {
             sourceSet(sourceSets.main.get())

@@ -18,6 +18,7 @@ public abstract class ModBenchExtension {
     private final Property<Boolean> clientAutoWorld;
     private final Property<Integer> clientWindowWidth;
     private final Property<Integer> clientWindowHeight;
+    private final Property<String> clientGraphicsBackend;
     private final Property<Boolean> clientVsync;
     private final Property<Integer> clientFpsLimit;
     private final Property<Integer> clientRenderDistance;
@@ -57,6 +58,7 @@ public abstract class ModBenchExtension {
         clientAutoWorld = objects.property(Boolean.class).convention(true);
         clientWindowWidth = objects.property(Integer.class).convention(1280);
         clientWindowHeight = objects.property(Integer.class).convention(720);
+        clientGraphicsBackend = objects.property(String.class).convention("opengl");
         clientVsync = objects.property(Boolean.class).convention(false);
         clientFpsLimit = objects.property(Integer.class).convention(260);
         clientRenderDistance = objects.property(Integer.class).convention(12);
@@ -100,6 +102,8 @@ public abstract class ModBenchExtension {
     public Property<Integer> getClientWindowWidth() { return clientWindowWidth; }
     /** @return requested client window height */
     public Property<Integer> getClientWindowHeight() { return clientWindowHeight; }
+    /** @return requested client graphics backend: {@code opengl} (default) or {@code vulkan} */
+    public Property<String> getClientGraphicsBackend() { return clientGraphicsBackend; }
     /** @return whether VSync is enabled during client benchmarks */
     public Property<Boolean> getClientVsync() { return clientVsync; }
     /** @return client frame-rate limit */

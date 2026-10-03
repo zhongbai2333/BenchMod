@@ -1,10 +1,12 @@
+> 本分支是 26.2 适配工作分支，尚无此版本的不可变 JitPack tag。当前请先 publishToMavenLocal，再用 `-PmodBenchLocal=true` 运行仓库示例；以下远程发布配置仅在发布对应 tag 后可用。
+
 # 外部 Mod 接入 ModBench
 
 面向想给自己的 NeoForge Mod 加基准测试的作者。整个接入面是：应用一个插件、写一个 Provider，其余（运行、报告、验收、清理、收集）全部自动。
 
 ## 前置条件
 
-- Mod 在 **Minecraft 26.1.2 / NeoForge 26.1.2.76** 开发线上（当前唯一验证线）。
+- Mod 在 **Minecraft 26.2 / NeoForge 26.2.0.88** 开发线上（当前唯一验证线）。
 - Java 25 工具链、Gradle 9.x、ModDevGradle 2.x。
 - 一个已发布的不可变 JitPack tag，例如 `0.1.3-beta`。
 
@@ -60,7 +62,7 @@ dependencyResolutionManagement {
 `gradle.properties` 里加：
 
 ```properties
-modbench_version=0.1.3-beta
+modbench_version=0.1.3-beta-mc26.2
 moddev_version=2.0.141
 ```
 
