@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, codex/mc26.2]
+    branches: [main, "26.2"]
     tags: ['*']
   pull_request:
   workflow_dispatch:
