@@ -142,3 +142,13 @@ Bench 运行不锁定鼠标（每 tick 释放抓取，光标可自由离开窗�
 ## 许可证
 
 [MIT](LICENSE)
+
+## Graphics migration assistant (26.3)
+
+An opt-in, test-only consumer at `examples/graphics-migration-assistant` runs six deterministic
+Renderpearl probes with GPU readback and CPU pixel assertions. It covers padded/offset RGBA
+uploads, RG8 shader sampling, fenced buffer reuse, uniform binding/depth/alpha blending,
+offscreen rendering/copying, and repeated resource recreation. Ordinary consumers do not run it.
+
+See [the 26.3 migration-assistant guide](docs/graphics-migration-assistant-26.3.md) for OpenGL/Vulkan
+runs, evidence export, strict differential comparison and remaining validation limits.

@@ -62,6 +62,15 @@ jobs:
           ./gradlew -p examples/simple-neoforge-mod-26.3
           compileBenchJava check --configuration-cache --no-daemon --max-workers=1 -PmodBenchBinaryArtifacts=true --stacktrace
 
+      - name: Test strict graphics report comparison
+        run: python3 -m unittest discover -s tools/tests -v
+
+      - name: Compile isolated graphics migration assistant
+        run: >-
+          ./gradlew -p examples/graphics-migration-assistant
+          compileBenchJava check -PmodBenchLocal=true -PmodBenchBinaryArtifacts=true
+          --configuration-cache --no-daemon --stacktrace
+
       - name: Upload failure reports
         if: failure()
         uses: actions/upload-artifact@v7

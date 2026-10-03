@@ -1,0 +1,612 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.zhongbai233.com/mod-bench/graphics-migration/1",
+  "title": "ModBench Graphics Migration Suite Report v1",
+  "description": "graphics-migration.json sidecar in result artifacts/custom. Artifacts are adjacent tightly packed RGBA8 files in recorded row order, without backend-specific orientation correction. Required scenes cannot SKIP. The Python comparator additionally validates backend identity, finite metrics, safe resolved paths, byte lengths, hashes and pixels. Unknown metadata is allowed per ADR-0002.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "suiteId",
+    "suiteRevision",
+    "seed",
+    "scenarioId",
+    "status",
+    "environment",
+    "scenes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "graphics-migration/1"
+    },
+    "suiteId": {
+      "const": "graphics-migration"
+    },
+    "suiteRevision": {
+      "type": "integer",
+      "const": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "scenarioId": {
+      "const": "graphics-migration.suite"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED"
+      ]
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "minecraft",
+        "requestedBackend",
+        "actualBackend",
+        "deviceName",
+        "vendor",
+        "driver"
+      ],
+      "properties": {
+        "minecraft": {
+          "type": "string"
+        },
+        "requestedBackend": {
+          "type": "string"
+        },
+        "actualBackend": {
+          "type": "string"
+        },
+        "deviceName": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string"
+        },
+        "driver": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 7,
+      "items": {
+        "$ref": "#/$defs/scene"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "rgba-stride-orientation"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "rg8-uv-channels"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "buffer-reuse"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "shader-depth-blend"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "offscreen-copy"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "resource-recreate"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "engine-resource-reload"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "minContains": 0,
+          "maxContains": 1
+        }
+      ]
+    },
+    "environmentValid": {
+      "type": "boolean"
+    },
+    "invalidations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PASS"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "environment": {
+            "properties": {
+              "minecraft": {
+                "pattern": "\\S"
+              },
+              "requestedBackend": {
+                "pattern": "\\S"
+              },
+              "actualBackend": {
+                "pattern": "\\S"
+              },
+              "deviceName": {
+                "pattern": "\\S"
+              },
+              "vendor": {
+                "pattern": "\\S"
+              },
+              "driver": {
+                "pattern": "\\S"
+              }
+            }
+          },
+          "scenes": {
+            "items": {
+              "if": {
+                "properties": {
+                  "id": {
+                    "const": "engine-resource-reload"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "status": {
+                    "const": "SKIP"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "status": {
+                    "const": "PASS"
+                  }
+                }
+              }
+            }
+          },
+          "environmentValid": {
+            "const": true
+          },
+          "invalidations": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{64})?$"
+    },
+    "artifact": {
+      "type": "string",
+      "maxLength": 255,
+      "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9._-]*\\.rgba)?$"
+    },
+    "scene": {
+      "type": "object",
+      "required": [
+        "id",
+        "revision",
+        "status",
+        "reason",
+        "width",
+        "height",
+        "channels",
+        "tolerancePerChannel",
+        "maxBadPixelRatio",
+        "expectedSha256",
+        "actualSha256",
+        "expectedArtifact",
+        "actualArtifact",
+        "checks",
+        "metrics"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "rgba-stride-orientation",
+            "rg8-uv-channels",
+            "buffer-reuse",
+            "shader-depth-blend",
+            "offscreen-copy",
+            "resource-recreate",
+            "engine-resource-reload"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP",
+            "BLOCKED"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "channels": {
+          "type": "integer",
+          "const": 4
+        },
+        "tolerancePerChannel": {
+          "type": "integer"
+        },
+        "maxBadPixelRatio": {
+          "type": "number",
+          "const": 0
+        },
+        "expectedSha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "actualSha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "expectedArtifact": {
+          "$ref": "#/$defs/artifact"
+        },
+        "actualArtifact": {
+          "$ref": "#/$defs/artifact"
+        },
+        "checks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "id": {
+              "const": "rgba-stride-orientation"
+            },
+            "width": {
+              "const": 17
+            },
+            "height": {
+              "const": 9
+            },
+            "tolerancePerChannel": {
+              "const": 0
+            },
+            "status": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "rg8-uv-channels"
+            },
+            "width": {
+              "const": 17
+            },
+            "height": {
+              "const": 9
+            },
+            "tolerancePerChannel": {
+              "const": 2
+            },
+            "status": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "buffer-reuse"
+            },
+            "width": {
+              "const": 8
+            },
+            "height": {
+              "const": 8
+            },
+            "tolerancePerChannel": {
+              "const": 0
+            },
+            "status": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "shader-depth-blend"
+            },
+            "width": {
+              "const": 8
+            },
+            "height": {
+              "const": 8
+            },
+            "tolerancePerChannel": {
+              "const": 2
+            },
+            "status": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "offscreen-copy"
+            },
+            "width": {
+              "const": 17
+            },
+            "height": {
+              "const": 9
+            },
+            "tolerancePerChannel": {
+              "const": 0
+            },
+            "status": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "resource-recreate"
+            },
+            "width": {
+              "const": 17
+            },
+            "height": {
+              "const": 9
+            },
+            "tolerancePerChannel": {
+              "const": 0
+            },
+            "status": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "BLOCKED"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "engine-resource-reload"
+            },
+            "width": {
+              "const": 0
+            },
+            "height": {
+              "const": 0
+            },
+            "tolerancePerChannel": {
+              "const": 0
+            },
+            "status": {
+              "const": "SKIP"
+            },
+            "expectedSha256": {
+              "const": ""
+            },
+            "actualSha256": {
+              "const": ""
+            },
+            "expectedArtifact": {
+              "const": ""
+            },
+            "actualArtifact": {
+              "const": ""
+            }
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "PASS"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "expectedSha256": {
+                "minLength": 1
+              },
+              "actualSha256": {
+                "minLength": 1
+              },
+              "expectedArtifact": {
+                "minLength": 1
+              },
+              "actualArtifact": {
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "reason": {
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "expectedArtifact": {
+                "const": ""
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "expectedSha256": {
+                "const": ""
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "expectedSha256": {
+                "minLength": 64
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "actualArtifact": {
+                "const": ""
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "actualSha256": {
+                "const": ""
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "actualSha256": {
+                "minLength": 64
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
