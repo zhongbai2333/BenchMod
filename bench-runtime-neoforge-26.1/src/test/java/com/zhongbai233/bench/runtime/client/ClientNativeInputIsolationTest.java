@@ -4,6 +4,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.TextInputManager;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.input.InputQuirks;
 import net.minecraft.client.gui.screens.Screen;
 import com.mojang.blaze3d.platform.Window;
 import sun.misc.Unsafe;
@@ -14,10 +16,13 @@ import org.junit.jupiter.api.parallel.ResourceLock;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Null native context is a tripwire: a cursor/IME entry must be cancelled before touching it. */
 @ResourceLock("SYSTEM_PROPERTIES")
+@ResourceLock("MINECRAFT_CLIENT_GLOBALS")
 class ClientNativeInputIsolationTest {
     private String previous;
     @BeforeEach void activate() {
@@ -29,29 +34,74 @@ class ClientNativeInputIsolationTest {
         else System.setProperty("modBench.resultDirectory", previous);
     }
     @Test void repeatedGrabsKeepGuiCloseSemanticsWithoutMovingOrCapturingCursor() throws Exception {
+        repeatedGrabsWithScopedClient(InputQuirks.RESTORE_KEY_STATE_AFTER_MOUSE_GRAB);
+    }
+    @Test void nonMacKeyStateRestoreBranchUsesScopedSingletonWithoutNativeKeyPolling() throws Exception {
+        repeatedGrabsWithScopedClient(true);
+    }
+    @Test void macKeyStateSkipBranchKeepsOriginalCursorAndRecursiveGuiAssertions() throws Exception {
+        repeatedGrabsWithScopedClient(false);
+    }
+    @SuppressWarnings("unchecked")
+    private void repeatedGrabsWithScopedClient(boolean restoreKeys) throws Exception {
         StubMinecraft minecraft = allocate(StubMinecraft.class);
         minecraft.window = allocate(Window.class);
         minecraft.active = true;
         set(minecraft.window, "width", 1280); set(minecraft.window, "height", 720);
+        assertEquals(0L, minecraft.window.handle(), "fixture must never own a native GLFW window");
         MouseHandler mouse = new MouseHandler(minecraft);
         minecraft.mouse = mouse;
         set(mouse, "xpos", 23.5); set(mouse, "ypos", 93.0);
-        for (int index = 0; index < 8; index++) {
-            minecraft.guiOpen = true;
-            assertDoesNotThrow(mouse::grabMouse);
-            assertFalse(mouse.isMouseGrabbed());
-            assertFalse(minecraft.guiOpen, "grab-only GUI closing callbacks must still work");
-            assertEquals(index + 1, minecraft.closes, "setScreen's recursive grab must terminate");
-            assertEquals(10000, minecraft.missTimeForTest());
-            assertTrue((boolean) get(mouse, "ignoreFirstMove"));
-            assertEquals(23.5, mouse.xpos()); assertEquals(93.0, mouse.ypos());
-            assertDoesNotThrow(mouse::releaseMouse);
-            assertEquals(23.5, mouse.xpos()); assertEquals(93.0, mouse.ypos());
+        Field singleton = Minecraft.class.getDeclaredField("instance"); singleton.setAccessible(true);
+        Object previousClient = singleton.get(null);
+        Field mappingsField = KeyMapping.class.getDeclaredField("ALL"); mappingsField.setAccessible(true);
+        Map<String, KeyMapping> mappings = (Map<String, KeyMapping>) mappingsField.get(null);
+        Map<String, KeyMapping> previousMappings = new LinkedHashMap<>(mappings);
+        FocusProbeKeyMapping probe = allocate(FocusProbeKeyMapping.class);
+        probe.client = minecraft;
+        // This non-constant final is platform-dependent. The scoped fixture exercises both
+        // actual MouseHandler branches on this host; it does not claim a native Linux GUI.
+        Class.forName(InputQuirks.class.getName(), true, InputQuirks.class.getClassLoader());
+        Field quirk = InputQuirks.class.getDeclaredField("RESTORE_KEY_STATE_AFTER_MOUSE_GRAB");
+        Unsafe unsafe = unsafe();
+        Object quirkBase = unsafe.staticFieldBase(quirk);
+        long quirkOffset = unsafe.staticFieldOffset(quirk);
+        boolean previousQuirk = unsafe.getBooleanVolatile(quirkBase, quirkOffset);
+        try {
+            singleton.set(null, minecraft);
+            mappings.clear(); mappings.put("modbench.test.owned-focus-probe", probe);
+            unsafe.putBooleanVolatile(quirkBase, quirkOffset, restoreKeys);
+            assertSame(minecraft, Minecraft.getInstance());
+            assertEquals(restoreKeys, unsafe.getBooleanVolatile(quirkBase, quirkOffset));
+            for (int index = 0; index < 8; index++) {
+                minecraft.guiOpen = true;
+                assertDoesNotThrow(mouse::grabMouse);
+                assertFalse(mouse.isMouseGrabbed());
+                assertFalse(minecraft.guiOpen, "grab-only GUI closing callbacks must still work");
+                assertEquals(index + 1, minecraft.closes, "setScreen's recursive grab must terminate");
+                assertEquals(10000, minecraft.missTimeForTest());
+                assertTrue((boolean) get(mouse, "ignoreFirstMove"));
+                assertEquals(23.5, mouse.xpos()); assertEquals(93.0, mouse.ypos());
+                assertDoesNotThrow(mouse::releaseMouse);
+                assertEquals(23.5, mouse.xpos()); assertEquals(93.0, mouse.ypos());
+            }
+            minecraft.active = false; minecraft.guiOpen = true;
+            mouse.grabMouse();
+            assertTrue(minecraft.guiOpen, "inactive windows must not close the GUI");
+            assertEquals(8, minecraft.closes);
+            assertEquals(restoreKeys ? 8 : 0, probe.focusChecks,
+                    "only the non-Mac branch must traverse actual KeyMapping.setAll once per grab");
+            assertEquals(Map.of("modbench.test.owned-focus-probe", probe), mappings,
+                    "the fixture may not acquire unrelated registered mappings");
+        } finally {
+            // ALL is isolated without touching MAP or any original mapping's key/down/click state.
+            mappings.clear(); mappings.putAll(previousMappings);
+            unsafe.putBooleanVolatile(quirkBase, quirkOffset, previousQuirk);
+            singleton.set(null, previousClient);
+            assertEquals(previousMappings, mappings);
+            assertEquals(previousQuirk, unsafe.getBooleanVolatile(quirkBase, quirkOffset));
+            assertSame(previousClient, Minecraft.getInstance());
         }
-        minecraft.active = false; minecraft.guiOpen = true;
-        mouse.grabMouse();
-        assertTrue(minecraft.guiOpen, "inactive windows must not close the GUI");
-        assertEquals(8, minecraft.closes);
     }
     @Test void releaseDoesNotRecenterEvenWhenLogicalGrabFlagWasAlreadySet() throws Exception {
         MouseHandler mouse = new MouseHandler(null);
@@ -94,8 +144,22 @@ class ClientNativeInputIsolationTest {
     }
     /** Constructor-free fixtures retain actual MouseHandler bytecode, with no GLFW window creation. */
     private static <T> T allocate(Class<T> type) throws Exception {
+        return type.cast(unsafe().allocateInstance(type));
+    }
+    private static Unsafe unsafe() throws Exception {
         Field field = Unsafe.class.getDeclaredField("theUnsafe"); field.setAccessible(true);
-        return type.cast(((Unsafe) field.get(null)).allocateInstance(type));
+        return (Unsafe) field.get(null);
+    }
+    private static final class FocusProbeKeyMapping extends KeyMapping {
+        StubMinecraft client;
+        int focusChecks;
+        private FocusProbeKeyMapping() { super("modbench.test.owned-focus-probe", -1, null); }
+        @Override protected boolean shouldSetOnIngameFocus() {
+            assertSame(client, Minecraft.getInstance());
+            focusChecks++;
+            // setAll still executes; the test-owned mapping must not poll GLFW on handle zero.
+            return false;
+        }
     }
     private static final class StubMinecraft extends Minecraft {
         Window window;
