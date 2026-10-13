@@ -27,15 +27,6 @@ final class ClientGraphicsController {
         minecraft.options.save();
     }
 
-    /**
-     * Keeps the cursor free while the benchmark drives the camera. A grabbed mouse would both
-     * hold the cursor hostage on the machine and let physical mouse movement rotate the player,
-     * which is a nondeterminism source. Minecraft re-grabs on focus changes, so this runs per tick.
-     */
-    void keepMouseReleased(Minecraft minecraft) {
-        if (minecraft.mouseHandler.isMouseGrabbed()) minecraft.mouseHandler.releaseMouse();
-    }
-
     Snapshot snapshot(Minecraft minecraft) {
         Window window = minecraft.getWindow();
         return new Snapshot(

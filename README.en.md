@@ -18,6 +18,10 @@ A reproducible in-game benchmarking toolkit for NeoForge mod developers. Keep re
 
 Passing compilation or headless CI is not a GPU pass. Frame intervals are not GPU timings; invalid environments, missing devices and missing evidence cannot count as success. The high-version suite has no verified dual-backend hardware result yet; see [validation limits](docs/wiki/Graphics-Migration.md).
 
+## Native input isolation
+
+Bench runs do not warp or capture the system cursor or toggle native IME selection mode. Client-only hooks block mouse capture, native cursor recentering, and IME mode changes before the first world or GUI transition; they activate only when the required `modBench.resultDirectory` run marker is present. Virtual GUI clicks, keys, Unicode text and camera automation remain available, and ordinary runs keep vanilla input behavior. The `MINIMIZED` inactivity FPS policy still keeps visible background windows at full speed; minimized windows remain subject to the engine's 10 FPS limit and environment invalidation.
+
 ## Choose a version
 
 | Branch | Minecraft | NeoForge | Java | Status |

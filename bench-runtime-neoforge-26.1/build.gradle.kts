@@ -15,6 +15,9 @@ val smokeBench by sourceSets.creating {
     runtimeClasspath += output + compileClasspath + sourceSets.main.get().runtimeClasspath
 }
 
+// A metadata-only test mod registers the client hooks before FML bootstraps game classes.
+val inputIsolationFixtures by sourceSets.creating
+
 dependencies {
     api(project(":bench-api-core"))
     api(project(":bench-api-neoforge-26.1"))
@@ -52,9 +55,18 @@ neoForge {
             sourceSet(smokeBench)
         }
     }
+    mods {
+        create("modbench_input_test") { sourceSet(inputIsolationFixtures) }
+    }
     unitTest {
         enable()
         testedMod = mods.getByName("modbench_runtime")
+        loadedMods.add(mods.getByName("modbench_runtime"))
+        loadedMods.add(mods.getByName("modbench_input_test"))
+    }
+    // Test fixture metadata must never be selected by ordinary or benchmark game runs.
+    runs.configureEach {
+        loadedMods.set(setOf(mods.getByName("modbench_runtime")))
     }
     runs {
         create("benchServer") {

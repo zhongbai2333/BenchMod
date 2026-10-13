@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.zhongbai233.bench.runtime.mixin.client",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "MouseHandlerMixin",
+    "InputConstantsMixin",
+    "TextInputManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -18,9 +18,9 @@ cd BenchMod
 ./gradlew -p examples/simple-neoforge-mod -PmodBenchLocal=true verifyBenchServer
 ```
 
-`verifyReleaseReadiness` 会执行检查并发布到 Maven Local，因此这套命令验证的是当前源码。要验证示例固定的 JitPack `0.1.3-beta`，省略 `-PmodBenchLocal=true`；不要混淆两种验证结果。
+`verifyReleaseReadiness` 会执行检查并发布到 Maven Local，因此这套命令验证的是当前源码。要验证示例固定的 JitPack `0.1.4-beta`，省略 `-PmodBenchLocal=true`；不要混淆两种验证结果。
 
-`verifyReleaseReadiness` checks and publishes to Maven Local, so these commands exercise the current source. Omit `-PmodBenchLocal=true` to exercise the example's pinned JitPack `0.1.3-beta` instead. Keep these two forms of evidence separate.
+`verifyReleaseReadiness` checks and publishes to Maven Local, so these commands exercise the current source. Omit `-PmodBenchLocal=true` to exercise the example's pinned JitPack `0.1.4-beta` instead. Keep these two forms of evidence separate.
 
 ### 26.2
 
@@ -80,7 +80,7 @@ Apply the plugin in `build.gradle.kts`, keeping the existing Java and ModDev plu
 
 ```kotlin
 plugins {
-    id("com.zhongbai233.minecraft-bench") version "0.1.3-beta"
+    id("com.zhongbai233.minecraft-bench") version "0.1.4-beta"
 }
 
 modBench {
