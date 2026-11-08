@@ -2,6 +2,7 @@ package com.zhongbai233.bench.runtime.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.zhongbai233.bench.runtime.graphics.GraphicsMigrationGpu;
 import java.lang.reflect.Method;
@@ -12,11 +13,13 @@ import org.lwjgl.util.shaderc.Shaderc;
 class GraphicsMigrationShaderTest {
     @Test
     void allProbeShadersCompileForBothBackendTargets() throws Exception {
-        compile(source("textureVertex"), Shaderc.shaderc_glsl_vertex_shader);
-        compile(source("textureFragment", true), Shaderc.shaderc_glsl_fragment_shader);
-        compile(source("textureFragment", false), Shaderc.shaderc_glsl_fragment_shader);
-        compile(source("colorVertex"), Shaderc.shaderc_glsl_vertex_shader);
-        compile(source("colorFragment"), Shaderc.shaderc_glsl_fragment_shader);
+        withNativeShaderCompiler(() -> {
+            compile(source("textureVertex"), Shaderc.shaderc_glsl_vertex_shader);
+            compile(source("textureFragment", true), Shaderc.shaderc_glsl_fragment_shader);
+            compile(source("textureFragment", false), Shaderc.shaderc_glsl_fragment_shader);
+            compile(source("colorVertex"), Shaderc.shaderc_glsl_vertex_shader);
+            compile(source("colorFragment"), Shaderc.shaderc_glsl_fragment_shader);
+        });
     }
 
     private static String source(String name, Object... arguments) throws Exception {
@@ -54,5 +57,18 @@ class GraphicsMigrationShaderTest {
         } finally {
             Shaderc.shaderc_compiler_release(compiler);
         }
+    }
+
+    private static void withNativeShaderCompiler(ThrowingRunnable assertions) throws Exception {
+        try {
+            assertions.run();
+        } catch (LinkageError error) {
+            assumeTrue(false, () -> "Native shader compiler is unavailable: " + error);
+        }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
     }
 }
