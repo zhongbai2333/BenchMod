@@ -6,4 +6,7 @@ before_install:
   - sdk use java 25.0.2-open
 
 install:
-  - ./gradlew clean check verifyReleaseReadiness --no-daemon --stacktrace
+  # Minecraft 26.2's upstream reconstructed sources do not compile cleanly on
+  # JitPack. Use ModDev's supported patched-binary path, matching CI and the
+  # documented release-readiness command.
+  - ./gradlew -PmodBenchBinaryArtifacts=true clean check verifyReleaseReadiness --no-daemon --max-workers=1 --stacktrace
