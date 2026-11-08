@@ -1,4 +1,4 @@
-> 26.2 工作分支：`0.1.3-beta-mc26.2` 尚未发布 JitPack tag。当前必须先发布本地源码，再显式使用 `-PmodBenchLocal=true`；本分支 CI 验证源码发布后的独立消费。下述远程消费方式适用于对应 tag 正式发布之后。
+> 26.2 工作分支：`0.1.5-beta-mc26.2` 尚未发布 JitPack tag。当前必须先发布本地源码，再显式使用 `-PmodBenchLocal=true`；本分支 CI 验证源码发布后的独立消费。下述远程消费方式适用于对应 tag 正式发布之后。
 
 # Simple NeoForge Mod consumer
 

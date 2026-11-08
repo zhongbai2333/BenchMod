@@ -18,6 +18,10 @@
 
 编译或 headless CI 通过不代表 GPU 实测通过。帧间隔不是 GPU 时间；无效环境、缺设备和缺失证据不能算成功。高版本图形 suite 尚无已验证的双后端硬件运行结论，见 [验证边界](docs/wiki/Graphics-Migration.md)。
 
+## 原生输入隔离
+
+当 `modBench.resultDirectory` 非空时，Runtime 的客户端 Mixin 会拦截原生鼠标捕获、指针回中和原生文本输入（IME）模式写入。虚拟 GUI 输入（点击、按键、Unicode 输入）和相机自动化仍可使用；未设置该属性时，普通运行保持原版输入行为。
+
 ## 版本选择
 
 | Branch | Minecraft | NeoForge | Java | 状态 / Status |

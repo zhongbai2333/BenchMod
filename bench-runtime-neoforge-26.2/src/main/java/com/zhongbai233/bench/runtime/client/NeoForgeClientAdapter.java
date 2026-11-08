@@ -41,7 +41,6 @@ public final class NeoForgeClientAdapter {
                 return;
             }
         }
-        GRAPHICS.keepMouseReleased(minecraft);
         if (!attempted && minecraft.level == null) {
             WORLD.requestIfNeeded(minecraft, configuration);
             startupTicks++;

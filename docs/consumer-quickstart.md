@@ -62,7 +62,7 @@ dependencyResolutionManagement {
 `gradle.properties` 里加：
 
 ```properties
-modbench_version=0.1.3-beta-mc26.2
+modbench_version=0.1.5-beta-mc26.2
 moddev_version=2.0.141
 ```
 

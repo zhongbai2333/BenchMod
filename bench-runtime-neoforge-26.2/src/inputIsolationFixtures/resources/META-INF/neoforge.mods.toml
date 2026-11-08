@@ -1,0 +1,10 @@
+license="MIT"
+
+[[mods]]
+modId="modbench_input_test"
+version="1"
+displayName="ModBench Input Isolation Test Fixtures"
+description="Registers production client hooks for no-window FML server unit tests."
+
+[[mixins]]
+config="modbench_runtime.input-isolation-test.mixins.json"

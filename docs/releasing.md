@@ -1,4 +1,4 @@
-> 26.2 工作分支尚无不可变发布 tag。当前示例固定 `0.1.3-beta-mc26.2`，CI 的 `Verify 26.2 independent consumer contract` 先发布本分支到 Maven Local，再编译独立示例；这不构成 JitPack 远程发布成功的证据。以下 tag 流程适用于准备正式发布时。
+> 26.2 工作分支尚无不可变发布 tag。当前示例固定 `0.1.5-beta-mc26.2`，CI 的 `Verify 26.2 independent consumer contract` 先发布本分支到 Maven Local，再编译独立示例；这不构成 JitPack 远程发布成功的证据。以下 tag 流程适用于准备正式发布时。
 
 # 通过 JitPack 发布 ModBench
 

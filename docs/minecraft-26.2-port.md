@@ -4,13 +4,15 @@
 
 - Minecraft 26.2, NeoForge 26.2.0.88, ModDevGradle 2.0.141, Java 25
 - Gradle wrapper 9.5.1 verified; initial independent-module checks also ran with Gradle 9.5.0
-- Local source version: `0.1.3-beta-mc26.2`
-- Matching artifacts: `com.zhongbai233.bench:bench-api-neoforge-26.2:0.1.3-beta-mc26.2` and `com.zhongbai233.bench:bench-runtime-neoforge-26.2:0.1.3-beta-mc26.2`
+- Local source version: `0.1.5-beta-mc26.2`
+- Matching artifacts: `com.zhongbai233.bench:bench-api-neoforge-26.2:0.1.5-beta-mc26.2` and `com.zhongbai233.bench:bench-runtime-neoforge-26.2:0.1.5-beta-mc26.2`
 - All common modules and the plugin use the same version. No immutable JitPack release has been created for this branch.
 
 ## Ported behavior
 
 GUI/screen access moves to `Minecraft.gui`; HUD visibility uses `Hud`; screenshot targets and cameras use the 26.2 `GameRenderer` accessors; readiness obtains section counts from `LevelExtractor`. Flat/void world generation uses the registered flat world preset instead of the removed helper.
+
+Client-only input hooks use the 26.2 GLFW signatures. A non-blank `modBench.resultDirectory` blocks native mouse capture, cursor recentering, and native text-input/IME mode writes while preserving virtual GUI automation and ordinary-run behavior. The Runtime module test covers the transformed no-window path; a real desktop client launch remains separate validation.
 
 `modBench.clientGraphicsBackend` defaults to `opengl`; `-PmodBench.client.graphicsBackend=vulkan` overrides it. Both integrated and paired clients receive the official `--graphicsBackend` argument before device startup. Vanilla still attempts backend fallback, so reports include `clientGraphicsBackend` plus actual start/end backend, device, vendor and driver diagnostics. A backend mismatch invalidates the environment and prevents a PASSED comparable result.
 
