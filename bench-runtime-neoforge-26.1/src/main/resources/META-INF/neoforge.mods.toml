@@ -19,3 +19,6 @@ type="required"
 versionRange="[26.1.2]"
 ordering="NONE"
 side="BOTH"
+
+[[mixins]]
+config="modbench_runtime.client.mixins.json"

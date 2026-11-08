@@ -18,6 +18,10 @@ A reproducible in-game benchmarking toolkit for NeoForge mod developers. Keep re
 
 Passing compilation or headless CI is not a GPU pass. Frame intervals are not GPU timings; invalid environments, missing devices and missing evidence cannot count as success. The high-version suite has no verified dual-backend hardware result yet; see [validation limits](docs/wiki/Graphics-Migration.md).
 
+## Native input isolation
+
+When `modBench.resultDirectory` is non-blank, client-only Runtime Mixins block native mouse capture, cursor recentering, and native text-input/IME mode writes. Virtual GUI input (clicks, keys, and Unicode text) and camera automation remain available. Ordinary runs without the marker retain vanilla input behavior.
+
 ## Choose a version
 
 | Branch | Minecraft | NeoForge | Java | Status |

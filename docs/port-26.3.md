@@ -4,7 +4,7 @@
 
 - Minecraft 26.3, NeoForge 26.3.0.45-beta, Java 25
 - Separate API/runtime adapter modules; 26.1 modules retain their original target
-- Local Maven group `com.zhongbai233.bench`, version `0.1.3-beta-mc26.3`
+- Local Maven group `com.zhongbai233.bench`, version `0.1.5-beta-mc26.3`
 - API: `bench-api-neoforge-26.3`; runtime: `bench-runtime-neoforge-26.3`
 - Plugin automatically selects the adapter from the public ModDev `getVersion()` API
 - `modBench.neoForgeLine` may be set explicitly, but it must match ModDev when automatic dependencies are enabled
@@ -19,6 +19,8 @@ The new runtime keeps captures on Minecraft's backend-neutral screenshot path. G
 Reports record requested backend plus actual device/backend/vendor/driver. If Minecraft falls back to a different backend, the run becomes `INCONCLUSIVE` instead of claiming comparable Vulkan measurements.
 
 GUI mouse buttons, keyboard scancodes, layout keycodes, and modifiers now use Minecraft 26.3's SDL constants (`InputConstants`). Primary mouse button is **1**, not the old GLFW value 0; default clicks, double-clicks, and drags use the correct constant. Explicit callers must migrate their input constants too. `pressKey(key, keycode, modifiers)` takes an SDL scancode first and its layout keycode second.
+
+Client-only input hooks use the 26.3 SDL signatures. A non-blank `modBench.resultDirectory` blocks native mouse capture, cursor recentering, and SDL text-input area/start/stop writes while preserving virtual GUI automation and ordinary-run behavior. Tests cover both the 26.3 Runtime and the retained 26.1 Runtime module; a real desktop client launch remains separate validation.
 
 ## Low-memory development
 
