@@ -6,24 +6,29 @@ import com.zhongbai233.bench.runtime.graphics.GraphicsMigrationGpu;
 import org.junit.jupiter.api.Test;
 import org.lwjgl.util.shaderc.Shaderc;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /** Real shader frontends only. These tests do not create a device or claim GPU rendering passed. */
 class GraphicsMigrationShaderTest {
     @Test void shadersCompileThroughActualVulkanFrontendAndReflectBindings() throws Exception {
-        try (var compiler = new GlslCompiler();
-             var vertex = compiler.createIntermediary("probe-vertex", source("VERTEX"), ShaderType.VERTEX);
-             var sample = compiler.createIntermediary("probe-sample", source("SAMPLE"), ShaderType.FRAGMENT);
-             var depth = compiler.createIntermediary("probe-depth", source("DEPTH"), ShaderType.FRAGMENT)) {
-            assertTrue(vertex.spirv().remaining()>0);
-            assertEquals("ProbeTexture",name(sample.samplers().getFirst()));
-            assertEquals("ProbeParams",name(sample.uniformBuffers().getFirst()));
-            assertEquals("ProbeParams",name(depth.uniformBuffers().getFirst()));
-        }
+        withNativeShaderCompiler(() -> {
+            try (var compiler = new GlslCompiler();
+                 var vertex = compiler.createIntermediary("probe-vertex", source("VERTEX"), ShaderType.VERTEX);
+                 var sample = compiler.createIntermediary("probe-sample", source("SAMPLE"), ShaderType.FRAGMENT);
+                 var depth = compiler.createIntermediary("probe-depth", source("DEPTH"), ShaderType.FRAGMENT)) {
+                assertTrue(vertex.spirv().remaining()>0);
+                assertEquals("ProbeTexture",name(sample.samplers().getFirst()));
+                assertEquals("ProbeParams",name(sample.uniformBuffers().getFirst()));
+                assertEquals("ProbeParams",name(depth.uniformBuffers().getFirst()));
+            }
+        });
     }
     @Test void shadersCompileForOpenGlFrontend() throws Exception {
-        compileGl(source("VERTEX"),Shaderc.shaderc_glsl_vertex_shader);
-        compileGl(source("SAMPLE"),Shaderc.shaderc_glsl_fragment_shader);
-        compileGl(source("DEPTH"),Shaderc.shaderc_glsl_fragment_shader);
+        withNativeShaderCompiler(() -> {
+            compileGl(source("VERTEX"),Shaderc.shaderc_glsl_vertex_shader);
+            compileGl(source("SAMPLE"),Shaderc.shaderc_glsl_fragment_shader);
+            compileGl(source("DEPTH"),Shaderc.shaderc_glsl_fragment_shader);
+        });
     }
     private static String name(Object reflected)throws Exception {
         var method=reflected.getClass().getDeclaredMethod("name");method.setAccessible(true);return (String)method.invoke(reflected);
@@ -44,4 +49,11 @@ class GraphicsMigrationShaderTest {
             finally {Shaderc.shaderc_result_release(result);}
         } finally {Shaderc.shaderc_compile_options_release(options);Shaderc.shaderc_compiler_release(compiler);}
     }
+    private static void withNativeShaderCompiler(ThrowingRunnable assertions) throws Exception {
+        try { assertions.run(); }
+        catch (LinkageError error) {
+            assumeTrue(false, () -> "Native shader compiler is unavailable: " + error);
+        }
+    }
+    @FunctionalInterface private interface ThrowingRunnable { void run() throws Exception; }
 }
