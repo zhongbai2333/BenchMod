@@ -91,3 +91,25 @@ jobs:
             examples/simple-neoforge-mod/build/reports/**
           if-no-files-found: ignore
           retention-days: 7
+
+  released-consumer:
+    name: Verify released 1.21.1 JitPack consumer
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/wrapper-validation@v6
+      - name: Resolve and compile the released JitPack coordinate
+        env:
+          GRADLE_USER_HOME: ${{ runner.temp }}/gradle-jitpack-consumer
+        run: >-
+          ./gradlew -p examples/simple-neoforge-mod
+          -PmodBenchBinaryArtifacts=true
+          --refresh-dependencies compileBenchJava check
+          dependencies --configuration runtimeClasspath
+          --configuration-cache --no-daemon --stacktrace
