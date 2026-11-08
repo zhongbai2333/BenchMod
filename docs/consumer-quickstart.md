@@ -22,7 +22,7 @@ The example validates provider count, scenario ID, artifacts, metrics, loaded mo
 
 - NeoForge 21.1.252、ModDevGradle 2.0.148、JDK 21
 - Plugin ID: `com.zhongbai233.minecraft-bench`
-- Local group/version: `com.zhongbai233.bench` / `0.1.3-mc1.21.1-beta`
+- Local group/version: `com.zhongbai233.bench` / `0.1.5-mc1.21.1-beta`
 - API: `bench-api-core` + `bench-api-neoforge-1.21.1`
 - Runtime: `bench-runtime-neoforge-1.21.1`, only on the benchmark runtime
 - Provider: `src/bench/java`; service descriptor: `src/bench/resources/META-INF/services/com.zhongbai233.bench.api.BenchProvider`

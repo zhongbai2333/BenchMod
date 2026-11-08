@@ -3,6 +3,10 @@
   "minVersion": "0.8",
   "package": "com.zhongbai233.bench.runtime.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["ScreenInputModifiersMixin"],
+  "client": [
+    "ScreenInputModifiersMixin",
+    "client.MouseHandlerMixin",
+    "client.InputConstantsMixin"
+  ],
   "injectors": {"defaultRequire": 1}
 }

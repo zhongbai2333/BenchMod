@@ -1,8 +1,8 @@
 # 1.21.1 publication preflight / 发布预检
 
-本分支开发版本为 `0.1.3-mc1.21.1-beta`，尚未创建 release 或 tag。旧版本线的 JitPack tag 不能复用为 1.21.1 产物。
+本分支开发版本为 `0.1.5-mc1.21.1-beta`，尚未创建 release 或 tag。旧版本线的 JitPack tag 不能复用为 1.21.1 产物。
 
-The source version is `0.1.3-mc1.21.1-beta`. No release or tag has been created; tags from other Minecraft lines do not provide this adapter.
+The source version is `0.1.5-mc1.21.1-beta`. No release or tag has been created; tags from other Minecraft lines do not provide this adapter.
 
 ## 源码验证 / Source verification
 

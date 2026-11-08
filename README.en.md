@@ -18,6 +18,10 @@ A reproducible in-game benchmarking toolkit for NeoForge mod developers. Keep re
 
 Passing compilation or headless CI is not a GPU pass. Frame intervals are not GPU timings; invalid environments, missing devices and missing evidence cannot count as success. The high-version suite has no verified dual-backend hardware result yet; see [validation limits](docs/wiki/Graphics-Migration.md).
 
+## Native input isolation
+
+When `modBench.resultDirectory` is non-blank, client-only Runtime Mixins intercept the legacy GLFW `grabOrReleaseMouse` boundary to prevent mouse capture and cursor recentering while virtual GUI input remains available. Minecraft 1.21.1 has no 26.x-style `TextInputManager` native IME mode boundary, so this line does not provide equivalent IME isolation. Ordinary runs without the marker retain vanilla input behavior.
+
 ## Choose a version
 
 | Branch | Minecraft | NeoForge | Java | Status |

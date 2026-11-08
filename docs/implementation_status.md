@@ -84,6 +84,7 @@
 - `BenchCaptureOptions` 默认在截图前同时满足渲染就绪与连续稳定帧，并隐藏 HUD；门禁超过 900 帧预算仍未打开时照常截图，但记录 `gate_satisfied=false` 并使整轮失效，不会挂起。
 - `ClientEnvironmentGuard` 在渲染首次就绪后武装，随后监测窗口尺寸变化、最小化、失焦、暂停、弹出屏幕与 overlay；任一命中即记录 invalidation 并把整轮报告降级为 `INCONCLUSIVE`。失焦严格度由 `clientRequireWindowFocus` 控制。
 - 图形基线关闭 `pauseOnLostFocus`，无人值守运行不会被失焦弹出的暂停菜单卡住。
+- 1.21.1 已按旧版 GLFW 签名（`grabOrReleaseMouse(long, int, double, double)`）适配鼠标捕获与回中隔离，并通过编译、完整单元测试及客户端配置/目标签名契约验证；这些检查不加载客户端 Mixin。NeoForge 21.1.252 的 JUnit 启动器硬编码为 `DEDICATED_SERVER`，无法在测试进程内加载客户端 Mixin，因此真实客户端启动仍需单独验证；该版本没有 26.x 的 `TextInputManager` 原生 IME 模式切换接口。
 - 1.21.1 没有新版 `inactivityFpsLimit` 配置；诊断明确记录 `not_available`。窗口最小化通过 GLFW 检测并由环境守卫判定为 `INCONCLUSIVE`。
 - Runtime 每个 client tick 释放鼠标抓取：光标不再被游戏窗口锁定，且物理鼠标移动无法转动玩家视角（本身是不确定性来源）。两项均记入 `client.graphics.*` 诊断并被示例 E2E 验收。
 - client 场景失败、超时或取消时自动抓取最终画面 `failure-<scenario>.png`，并在场景边界为未完成截图预留落盘预算。

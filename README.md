@@ -18,6 +18,10 @@
 
 编译或 headless CI 通过不代表 GPU 实测通过。帧间隔不是 GPU 时间；无效环境、缺设备和缺失证据不能算成功。高版本图形 suite 尚无已验证的双后端硬件运行结论，见 [验证边界](docs/wiki/Graphics-Migration.md)。
 
+## 原生输入隔离
+
+当 `modBench.resultDirectory` 非空时，Runtime 的客户端 Mixin 会按旧版 `grabOrReleaseMouse` 签名拦截 GLFW 的鼠标捕获和指针回中，同时保留虚拟 GUI 输入。此版本没有 26.x 的 `TextInputManager` 原生 IME 模式切换接口，因此不提供等价的 IME 隔离；未设置该属性时，普通运行保持原版输入行为。
+
 ## 版本选择
 
 | Branch | Minecraft | NeoForge | Java | 状态 / Status |

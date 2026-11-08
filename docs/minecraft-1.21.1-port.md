@@ -10,7 +10,7 @@
 
 - Minecraft **1.21.1**、NeoForge **21.1.252**、Java **21**
 - Gradle **9.5.1**、ModDevGradle **2.0.148**
-- 开发版本 **0.1.3-mc1.21.1-beta**；尚未创建发布 tag
+- 开发版本 **0.1.5-mc1.21.1-beta**；尚未创建发布 tag
 - API 模块：`bench-api-neoforge-1.21.1`
 - Runtime 模块：`bench-runtime-neoforge-1.21.1`
 - Java package 和 Gradle 插件 ID 保持不变；消费方必须使用本分支的成套产物
@@ -23,6 +23,7 @@
 - 恢复 FML 4 所需的 `javafml` 元数据，Core 与 Minecraft 类型 API JAR 均标记为 `GAMELIBRARY`（Core 仍无平台依赖），确保 Provider/Runtime 与游戏类型处于兼容的类加载层
 - 使用 1.21.1 的 `LevelSettings`、独立 `GameRules`、`RegistryAccess`、维度键和传送接口，保留 normal/flat/void 世界及指定维度
 - 使用旧版 `Input`、实体位置/旋转接口、Screen/NeoForge 的坐标型输入回调；文本沿原版 `KeyboardHandler` 的 UTF-16 分发行为处理
+- 当 `modBench.resultDirectory` 非空时，客户端 Mixin 会按旧版 GLFW 签名 `grabOrReleaseMouse(long, int, double, double)` 拦截原生鼠标捕获与指针回中。此版本没有 26.x 的 `TextInputManager` 原生 IME 模式切换接口，因此隔离范围仅限鼠标
 - 截图在渲染线程读取真实 OpenGL framebuffer，PNG 编码仍在 IO 线程；裁剪使用此版本的 RGBA 像素 API
 - 精确 access transformer 开放旧版私有 `GameRenderer.getFov(Camera,float,boolean)`，相机取景使用包含 NeoForge FOV hook 的真实投影，避免用固定角度估算
 - 通过 GLFW 获取最小化状态；1.21.1 没有新版 AFK FPS 选项，因此诊断记录 `inactivity_fps_limit=not_available`
@@ -63,6 +64,7 @@
 - Core 与平台 API 的 `GAMELIBRARY` 标记、Java 21 bytecode 和发布依赖检查通过
 - 实际客户端启动在 NeoForge early display 处失败：`glfwInit failed` / `cannot open display`。环境没有 DISPLAY/Xvfb；因此客户端 mixin 的实际应用、世界打开、GUI、截图、相机与配对客户端 **尚未在游戏中验收**。无 GPU 性能或视觉通过结论
 - FML 4 的 JUnit launch 固定为 server side；修饰键测试验证作用域/异常/嵌套及配置和方法契约，不能代替客户端 transformation 或 GUI E2E
+- 原生鼠标隔离已通过编译、完整单元测试及客户端配置/目标签名契约验证。NeoForge 21.1.252 的 JUnit 启动器硬编码为 `DEDICATED_SERVER`，无法在测试进程内加载客户端 Mixin，因此真实客户端启动仍需单独验证
 
 结论：**服务端已验收 beta；客户端实际运行待有图形环境时验证**。GitHub CI 对本分支执行精确提交的构建与独立专服验证；其状态以对应 Actions run 为准。
 
@@ -72,7 +74,7 @@
 
 The independent `1.21.1` branch backports the core BenchMod toolchain from `main`: isolated benchmark sources, provider lifecycle, server/client APIs, camera paths, GUI inspection/input, screenshots, JSON/JSONL/JFR artifacts, report verification and paired-process orchestration.
 
-It targets Minecraft **1.21.1**, NeoForge **21.1.252**, JDK **21**, Gradle **9.5.1** and ModDevGradle **2.0.148**. The development version is **0.1.3-mc1.21.1-beta**; no release tag has been created. Use matching `bench-api-neoforge-1.21.1` and `bench-runtime-neoforge-1.21.1` artifacts from this branch. Java packages and the Gradle plugin ID remain unchanged.
+It targets Minecraft **1.21.1**, NeoForge **21.1.252**, JDK **21**, Gradle **9.5.1** and ModDevGradle **2.0.148**. The development version is **0.1.5-mc1.21.1-beta**; no release tag has been created. Use matching `bench-api-neoforge-1.21.1` and `bench-runtime-neoforge-1.21.1` artifacts from this branch. Java packages and the Gradle plugin ID remain unchanged.
 
 This game version uses OpenGL. The Vulkan selector and modern graphics-migration probes from the `26.2` / `26.3` branches are not included. Compilation and legacy screenshots are not evidence of Vulkan validation.
 
@@ -82,6 +84,7 @@ This game version uses OpenGL. The Vulkan selector and modern graphics-migration
 - FML 4 metadata and `GAMELIBRARY` manifests on both core and platform API (core stays dependency-free) keep Minecraft-bound signatures in the game classloader
 - World creation uses the legacy `LevelSettings`, independent `GameRules`, registry and teleport APIs
 - Mouse input uses coordinate callbacks. A client-only mixin scopes `Screen` Shift/Ctrl/Alt queries during synthetic input, with nested and exception-safe restoration; direct raw GLFW polling by custom widgets still observes physical input
+- A second client-only input layer blocks the legacy GLFW `grabOrReleaseMouse(long, int, double, double)` boundary whenever `modBench.resultDirectory` is non-blank. It prevents native capture and recentering while ordinary runs remain vanilla. Minecraft 1.21.1 has no 26.x `TextInputManager` native IME boundary, so no equivalent IME-isolation claim is made
 - Double-click dispatch uses two normal clicks and the widget's own timing detection; text follows vanilla UTF-16 callbacks
 - Real framebuffer readback happens on the render thread, with PNG encoding on the IO executor
 - A narrowly scoped access transformer exposes `GameRenderer.getFov(Camera,float,boolean)` so camera framing uses the actual engine FOV, including NeoForge hooks
