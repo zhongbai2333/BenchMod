@@ -14,6 +14,10 @@ abstract class InputConstantsMixin {
     @Inject(method = "grabOrReleaseMouse", at = @At("HEAD"), cancellable = true)
     private static void modbench$preventNativeCursorWarp(Window window, int mode, double x, double y,
                                                         CallbackInfo callback) {
-        if (BenchInputIsolation.active()) callback.cancel();
+        if (!BenchInputIsolation.active()) return;
+        // Do not call vanilla here: it always warps the cursor before changing the mode.
+        // A release must still reach GLFW or a capture that predates isolation can remain stuck.
+        BenchInputIsolation.ensureCursorReleased(window);
+        callback.cancel();
     }
 }

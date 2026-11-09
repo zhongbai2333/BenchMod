@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Null native context is a tripwire: a cursor/IME entry must be cancelled before touching it. */
@@ -116,9 +117,26 @@ class ClientNativeInputIsolationTest {
         assertFalse(mouse.isMouseGrabbed());
         assertEquals(23.5, mouse.xpos()); assertEquals(93.0, mouse.ypos());
     }
-    @Test void lowLevelGrabAndReleaseAreBlockedBeforeFirstCursorPositionOrModeCall() {
+    @Test void lowLevelGrabIsBlockedAndReleaseIsHandledWithoutVanillaCursorWarp() {
         assertDoesNotThrow(() -> InputConstants.grabOrReleaseMouse(null, 212995, 640, 360));
         assertDoesNotThrow(() -> InputConstants.grabOrReleaseMouse(null, 212993, 640, 360));
+    }
+
+    @Test void zeroHandleReleaseFallbackNeverTouchesGlfw() throws Exception {
+        Window window = allocate(Window.class);
+        assertEquals(0L, window.handle());
+        assertDoesNotThrow(() -> BenchInputIsolation.ensureCursorReleased(window));
+    }
+
+    @Test void nativeFallbackReleasesCapturedModeButLeavesNormalModeAlone() {
+        AtomicInteger releases = new AtomicInteger();
+        BenchInputIsolation.CursorModeAccess captured = cursorMode(212995, releases);
+        BenchInputIsolation.ensureCursorReleased(42L, captured);
+        assertEquals(1, releases.get());
+
+        BenchInputIsolation.CursorModeAccess normal = cursorMode(212993, releases);
+        BenchInputIsolation.ensureCursorReleased(42L, normal);
+        assertEquals(1, releases.get());
     }
     @Test void imeModeWritesAreBlockedInBothDirectionsWhileTextLogicStillWorks() throws Exception {
         TextInputManager manager = new TextInputManager(null);
@@ -155,6 +173,20 @@ class ClientNativeInputIsolationTest {
     private static Unsafe unsafe() throws Exception {
         Field field = Unsafe.class.getDeclaredField("theUnsafe"); field.setAccessible(true);
         return (Unsafe) field.get(null);
+    }
+
+    private static BenchInputIsolation.CursorModeAccess cursorMode(int mode, AtomicInteger releases) {
+        return new BenchInputIsolation.CursorModeAccess() {
+            @Override public int mode(long handle) {
+                assertEquals(42L, handle);
+                return mode;
+            }
+
+            @Override public void release(long handle) {
+                assertEquals(42L, handle);
+                releases.incrementAndGet();
+            }
+        };
     }
     private static final class FocusProbeKeyMapping extends KeyMapping {
         StubMinecraft client;

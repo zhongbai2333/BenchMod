@@ -1,9 +1,11 @@
 package com.zhongbai233.bench.runtime.mixin.client;
 
 import com.zhongbai233.bench.runtime.client.BenchInputIsolation;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Preserve vanilla GUI closing while benchmark input never captures or recenters the cursor. */
 @Mixin(value = MouseHandler.class, remap = false)
 abstract class MouseHandlerMixin {
+    @Shadow @Final private Minecraft minecraft;
     @Shadow private boolean mouseGrabbed;
     @Shadow private double xpos;
     @Shadow private double ypos;
@@ -32,12 +35,16 @@ abstract class MouseHandlerMixin {
     @Inject(method = "grabMouse", at = @At("RETURN"))
     private void modbench$leaveCursorFreeAfterGuiClose(CallbackInfo callback) {
         // Vanilla temporarily sets this flag before setScreen(null), preventing recursive grabs.
-        if (BenchInputIsolation.active()) mouseGrabbed = false;
+        if (BenchInputIsolation.active()) {
+            BenchInputIsolation.ensureCursorReleased(minecraft.getWindow());
+            mouseGrabbed = false;
+        }
     }
 
     @Inject(method = "releaseMouse", at = @At("HEAD"), cancellable = true)
     private void modbench$releaseWithoutNativeCursorWrite(CallbackInfo callback) {
         if (BenchInputIsolation.active()) {
+            BenchInputIsolation.ensureCursorReleased(minecraft == null ? null : minecraft.getWindow());
             mouseGrabbed = false;
             callback.cancel();
         }

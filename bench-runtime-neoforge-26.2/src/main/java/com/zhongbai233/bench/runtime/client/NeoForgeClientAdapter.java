@@ -30,6 +30,7 @@ public final class NeoForgeClientAdapter {
     @SubscribeEvent
     public static void clientTickPost(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
+        BenchInputIsolation.ensureCursorReleased(minecraft.getWindow());
         if (configuration == null) {
             try {
                 configuration = RuntimeConfiguration.fromSystemProperties();
