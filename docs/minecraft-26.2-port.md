@@ -4,15 +4,15 @@
 
 - Minecraft 26.2, NeoForge 26.2.0.88, ModDevGradle 2.0.141, Java 25
 - Gradle wrapper 9.5.1 verified; initial independent-module checks also ran with Gradle 9.5.0
-- Local source version: `0.1.5-beta-mc26.2`
-- Matching artifacts: `com.zhongbai233.bench:bench-api-neoforge-26.2:0.1.5-beta-mc26.2` and `com.zhongbai233.bench:bench-runtime-neoforge-26.2:0.1.5-beta-mc26.2`
-- All common modules and the plugin use the same version. No immutable JitPack release has been created for this branch.
+- Local source version: `0.1.6-beta-mc26.2`
+- Published artifacts: `com.github.zhongbai2333.BenchMod:bench-api-neoforge-26.2:0.1.6-beta-mc26.2` and `com.github.zhongbai2333.BenchMod:bench-runtime-neoforge-26.2:0.1.6-beta-mc26.2`
+- The immutable JitPack tag publishes six modules with JDK 25. The JitPack API, representative POM/JAR files, and a clean-cache consumer without Maven Local were verified.
 
 ## Ported behavior
 
 GUI/screen access moves to `Minecraft.gui`; HUD visibility uses `Hud`; screenshot targets and cameras use the 26.2 `GameRenderer` accessors; readiness obtains section counts from `LevelExtractor`. Flat/void world generation uses the registered flat world preset instead of the removed helper.
 
-Client-only input hooks use the 26.2 GLFW signatures. A non-blank `modBench.resultDirectory` blocks native mouse capture, cursor recentering, and native text-input/IME mode writes while preserving virtual GUI automation and ordinary-run behavior. The Runtime module test covers the transformed no-window path; a real desktop client launch remains separate validation.
+Client-only input hooks use the 26.2 GLFW signatures. A non-blank `modBench.resultDirectory` blocks native mouse capture, cursor recentering, and native text-input/IME mode writes while preserving virtual GUI automation and ordinary-run behavior. The Runtime module test covers the transformed no-window path; the 0.1.6 release also actively clears a pre-existing GLFW capture every client tick. A real 26.2 desktop client was confirmed to leave the physical mouse free while the game was not in the foreground.
 
 `modBench.clientGraphicsBackend` defaults to `opengl`; `-PmodBench.client.graphicsBackend=vulkan` overrides it. Both integrated and paired clients receive the official `--graphicsBackend` argument before device startup. Vanilla still attempts backend fallback, so reports include `clientGraphicsBackend` plus actual start/end backend, device, vendor and driver diagnostics. A backend mismatch invalidates the environment and prevents a PASSED comparable result.
 

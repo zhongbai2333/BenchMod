@@ -85,7 +85,7 @@
 - `BenchCaptureOptions` 默认在截图前同时满足渲染就绪与连续稳定帧，并隐藏 HUD；门禁超过 900 帧预算仍未打开时照常截图，但记录 `gate_satisfied=false` 并使整轮失效，不会挂起。
 - `ClientEnvironmentGuard` 在渲染首次就绪后武装，随后监测窗口尺寸变化、最小化、失焦、暂停、弹出屏幕与 overlay；任一命中即记录 invalidation 并把整轮报告降级为 `INCONCLUSIVE`。失焦严格度由 `clientRequireWindowFocus` 控制。
 - 图形基线关闭 `pauseOnLostFocus`，无人值守运行不会被失焦弹出的暂停菜单卡住。
-- 客户端原生输入隔离以 `modBench.resultDirectory` 非空为启用条件。26.2 的 GLFW 适配会阻止原生鼠标捕获、指针回中和原生文本输入（IME）模式写入，同时保留虚拟输入与普通运行行为。对应 Runtime 模块测试已通过；真实桌面客户端运行仍需单独验证。
+- 客户端原生输入隔离以 `modBench.resultDirectory` 非空为启用条件。26.2 的 GLFW 适配会阻止原生鼠标捕获、指针回中和原生文本输入（IME）模式写入，同时保留虚拟输入与普通运行行为。对应 Runtime 模块测试已通过；用户已在真实 26.2 客户端确认游戏不在前台时不再捕获物理鼠标。
 - 图形基线把 `inactivityFpsLimit` 固定为 `MINIMIZED`：Minecraft 的 AFK 降帧（无真实输入 60 秒后降到 30fps、10 分钟后 10fps）对无人值守 bench 必然触发，会静默污染帧指标；关闭后未聚焦但可见的窗口保持满速渲染。窗口最小化仍会被引擎降到 10fps，与环境守卫的 `INCONCLUSIVE` 判定自洽。
 - Runtime 每个 client tick 释放鼠标抓取：光标不再被游戏窗口锁定，且物理鼠标移动无法转动玩家视角（本身是不确定性来源）。两项均记入 `client.graphics.*` 诊断并被示例 E2E 验收。
 - client 场景失败、超时或取消时自动抓取最终画面 `failure-<scenario>.png`，并在场景边界为未完成截图预留落盘预算。

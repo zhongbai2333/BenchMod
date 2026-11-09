@@ -1,4 +1,4 @@
-> 26.2 工作分支：`0.1.5-beta-mc26.2` 尚未发布 JitPack tag。当前必须先发布本地源码，再显式使用 `-PmodBenchLocal=true`；本分支 CI 验证源码发布后的独立消费。下述远程消费方式适用于对应 tag 正式发布之后。
+> 26.2 的发布版为 `0.1.6-beta-mc26.2`。常规使用通过 JitPack 远程获取依赖；只有在验证 BenchMod 本地源码时，才先将 BenchMod 发布到 Maven Local，并在构建本示例时显式传入 `-PmodBenchLocal=true`。
 
 # Simple NeoForge Mod consumer
 
